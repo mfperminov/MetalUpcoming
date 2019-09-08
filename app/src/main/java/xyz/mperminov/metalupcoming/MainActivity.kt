@@ -2,8 +2,6 @@ package xyz.mperminov.metalupcoming
 
 import android.os.Bundle
 import android.os.Handler
-import android.os.HandlerThread
-import android.os.Process
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,12 +17,14 @@ import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.ERROR
 import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.PROCEED_DATA
 import xyz.mperminov.parser.HrefStringParser
 import java.io.Serializable
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 @Suppress("UNCHECKED_CAST")
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
-    private val rawDataRepository = RawDataRepositoryNetwork(Handler { message ->
+    private val uiHandler = Handler { message ->
         when {
             message.what == ERROR -> Toast.makeText(
                 this,
@@ -44,10 +44,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
         true
-    })
-    private val handlerThread =
-        HandlerThread("DataHandlerThread", Process.THREAD_PRIORITY_BACKGROUND).apply { start() }
-    private val handler = Handler(handlerThread.looper)
+    }
+
+    private val rawDataRepository = RawDataRepositoryNetwork(uiHandler)
+    private val dataExecutor = Executors.newSingleThreadExecutor()
+    private var dataFuture: Future<*>? = null
+    private val dataHandlerTask = Runnable { rawDataRepository.getRawData() }
     private lateinit var recyclerView: RecyclerView
     private lateinit var viewAdapter: RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -63,13 +65,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             adapter = viewAdapter
         }
         if (savedInstanceState == null) {
-            handler.post { rawDataRepository.getRawData() }
+            dataFuture = dataExecutor.submit(dataHandlerTask)
         } else {
             showProgress(false)
             savedInstanceState.getSerializable(ALBUM_LIST_KEY)?.let {
                 val albumsList = it as List<Album>
                 if (albumsList.isEmpty()) {
-                    handler.post { rawDataRepository.getRawData() }
+                    dataFuture = dataExecutor.submit(dataHandlerTask)
                 } else {
                     (viewAdapter as AlbumAdapter).setData(
                         albumsList
@@ -93,8 +95,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onStop() {
         super.onStop()
-        handler.post { rawDataRepository.cancel() }
-        handlerThread.quitSafely()
+        dataFuture?.cancel(true)
+        uiHandler.removeCallbacksAndMessages(null)
     }
 
     companion object {

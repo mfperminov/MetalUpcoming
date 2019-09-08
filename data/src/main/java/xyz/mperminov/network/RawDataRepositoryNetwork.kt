@@ -3,6 +3,7 @@ package xyz.mperminov.network
 import android.os.AsyncTask
 import android.os.Handler
 import android.os.Message
+import android.util.Log
 import okhttp3.Request
 import xyz.mperminov.RawDataRepository
 
@@ -19,6 +20,7 @@ class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository
     }
 
     override fun cancel() {
+        Log.d("task", " cancelled")
         jsonGettingTask.cancel(true)
     }
 
