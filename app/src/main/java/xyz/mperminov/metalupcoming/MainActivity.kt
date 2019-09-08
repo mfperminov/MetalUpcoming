@@ -23,7 +23,6 @@ import java.util.concurrent.Future
 @Suppress("UNCHECKED_CAST")
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
-
     private val uiHandler = Handler { message ->
         when {
             message.what == ERROR -> Toast.makeText(
@@ -46,10 +45,19 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         true
     }
 
+    private var needRequestData = false
     private val rawDataRepository = RawDataRepositoryNetwork(uiHandler)
-    private val dataExecutor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadExecutor()
     private var dataFuture: Future<*>? = null
-    private val dataHandlerTask = Runnable { rawDataRepository.getRawData() }
+    private val dataTask = Runnable {
+        try {
+            rawDataRepository.getRawData()
+            needRequestData = false
+        } catch (e: InterruptedException) {
+            needRequestData = true
+            rawDataRepository.cancel()
+        }
+    }
     private lateinit var recyclerView: RecyclerView
     private lateinit var viewAdapter: RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -65,13 +73,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             adapter = viewAdapter
         }
         if (savedInstanceState == null) {
-            dataFuture = dataExecutor.submit(dataHandlerTask)
+            dataFuture = executor.submit(dataTask)
         } else {
             showProgress(false)
             savedInstanceState.getSerializable(ALBUM_LIST_KEY)?.let {
                 val albumsList = it as List<Album>
                 if (albumsList.isEmpty()) {
-                    dataFuture = dataExecutor.submit(dataHandlerTask)
+                    dataFuture = executor.submit(dataTask)
                 } else {
                     (viewAdapter as AlbumAdapter).setData(
                         albumsList
@@ -91,6 +99,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             ALBUM_LIST_KEY,
             (viewAdapter as AlbumAdapter).albums as Serializable
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (needRequestData) {
+            dataFuture = executor.submit(dataTask)
+        }
+
     }
 
     override fun onStop() {

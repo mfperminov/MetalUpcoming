@@ -3,14 +3,14 @@ package xyz.mperminov.network
 import android.os.AsyncTask
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import okhttp3.Request
 import xyz.mperminov.RawDataRepository
 
 class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository {
-    private val jsonGettingTask = JsonGettingTask(handler)
+    private lateinit var jsonGettingTask: JsonGettingTask
 
     override fun getRawData() {
+        jsonGettingTask = JsonGettingTask(handler)
         val rawJsonString = jsonGettingTask.execute().get()
         if (rawJsonString != "") {
             handler.sendMessage(
@@ -20,7 +20,6 @@ class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository
     }
 
     override fun cancel() {
-        Log.d("task", " cancelled")
         jsonGettingTask.cancel(true)
     }
 
@@ -68,6 +67,13 @@ internal class JsonGettingTask(private val handler: Handler) :
 
     override fun onCancelled(result: String?) {
         super.onCancelled(result)
-        handler.sendEmptyMessage(41)
+        if (result != null && result != "") {
+            handler.sendEmptyMessage(RawDataRepositoryNetwork.END_PROGRESS)
+            handler.sendMessage(
+                Message.obtain(handler, RawDataRepositoryNetwork.PROCEED_DATA, result)
+            )
+        } else {
+            handler.sendEmptyMessage(RawDataRepositoryNetwork.END_PROGRESS)
+        }
     }
 }
