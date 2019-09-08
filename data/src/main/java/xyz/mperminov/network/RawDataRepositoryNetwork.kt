@@ -13,17 +13,20 @@ class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository
         val rawJsonString = jsonGettingTask.execute().get()
         if (rawJsonString != "") {
             handler.sendMessage(
-                Message.obtain(handler, 43, rawJsonString)
-            )
-        } else {
-            handler.sendMessage(
-                Message.obtain(handler, 42, Throwable("Unknown error"))
+                Message.obtain(handler, PROCEED_DATA, rawJsonString)
             )
         }
     }
 
     override fun cancel() {
         jsonGettingTask.cancel(true)
+    }
+
+    companion object {
+        const val ERROR = 42
+        const val END_PROGRESS = 40
+        const val BEGIN_PROGRESS = 41
+        const val PROCEED_DATA = 43
     }
 }
 
@@ -32,7 +35,7 @@ internal class JsonGettingTask(private val handler: Handler) :
 
     override fun onPreExecute() {
         super.onPreExecute()
-        handler.sendEmptyMessage(40)
+        handler.sendEmptyMessage(RawDataRepositoryNetwork.BEGIN_PROGRESS)
     }
 
     override fun doInBackground(vararg p0: Unit?): String {
@@ -51,14 +54,14 @@ internal class JsonGettingTask(private val handler: Handler) :
 
             }
         } catch (e: Exception) {
-            handler.sendMessage(Message.obtain(handler, 42, e))
+            handler.sendMessage(Message.obtain(handler, RawDataRepositoryNetwork.ERROR, e))
         }
         return ""
     }
 
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
-        handler.sendEmptyMessage(41)
+        handler.sendEmptyMessage(RawDataRepositoryNetwork.END_PROGRESS)
     }
 
     override fun onCancelled(result: String?) {

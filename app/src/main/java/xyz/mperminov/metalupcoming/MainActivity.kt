@@ -13,6 +13,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import xyz.mperminov.mapper.AlbumMapperJson
 import xyz.mperminov.model.Album
 import xyz.mperminov.network.RawDataRepositoryNetwork
+import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.BEGIN_PROGRESS
+import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.END_PROGRESS
+import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.ERROR
+import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.PROCEED_DATA
 import xyz.mperminov.parser.HrefStringParser
 import java.io.Serializable
 
@@ -30,11 +34,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 .show()
             message.what == BEGIN_PROGRESS -> showProgress(true)
             message.what == END_PROGRESS -> showProgress(false)
-            message.what == PROCEED_DATA -> (viewAdapter as AlbumAdapter).setData(
-                AlbumMapperJson(HrefStringParser()).parse(
-                    message.obj as String
+            message.what == PROCEED_DATA -> {
+                (viewAdapter as AlbumAdapter).setData(
+                    AlbumMapperJson(HrefStringParser()).parse(
+                        message.obj as String
+                    )
                 )
-            )
+            }
         }
 
         true
@@ -59,10 +65,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         if (savedInstanceState == null) {
             handler.post { rawDataRepository.getRawData() }
         } else {
+            showProgress(false)
             savedInstanceState.getSerializable(ALBUM_LIST_KEY)?.let {
-                (viewAdapter as AlbumAdapter).setData(
-                    it as List<Album>
-                )
+                val albumsList = it as List<Album>
+                if (albumsList.isEmpty()) {
+                    handler.post { rawDataRepository.getRawData() }
+                } else {
+                    (viewAdapter as AlbumAdapter).setData(
+                        albumsList
+                    )
+                }
             }
         }
     }
@@ -87,9 +99,5 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     companion object {
         private const val ALBUM_LIST_KEY = "albumList"
-        const val ERROR = 42
-        const val END_PROGRESS = 40
-        const val BEGIN_PROGRESS = 41
-        const val PROCEED_DATA = 41
     }
 }
