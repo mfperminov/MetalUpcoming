@@ -31,6 +31,7 @@ class AlbumAdapter :
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.itemView.title_view.text = albums[position].band
         holder.itemView.subtitle_view.text = albums[position].albumTitle
+        holder.itemView.genre.text = albums[position].genre
     }
 
     override fun getItemCount() = albums.size

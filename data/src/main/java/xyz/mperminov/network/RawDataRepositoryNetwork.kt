@@ -55,7 +55,8 @@ internal class JsonGettingTask(private val handler: Handler) :
 
             }
         } catch (e: Exception) {
-            handler.sendMessage(Message.obtain(handler, RawDataRepositoryNetwork.ERROR, e))
+            if (e !is InterruptedException)
+                handler.sendMessage(Message.obtain(handler, RawDataRepositoryNetwork.ERROR, e))
         }
         return ""
     }

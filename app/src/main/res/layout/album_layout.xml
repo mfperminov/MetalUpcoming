@@ -4,7 +4,9 @@
         android:id="@+id/texts_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="12dp"
         android:orientation="vertical">
 
@@ -13,18 +15,25 @@
             style="@style/TextAppearance.AppCompat.Subhead"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
+
             android:ellipsize="end"
-            tools:text="Single Title" />
+            tools:text="Darkthrone" />
 
     <TextView
             android:id="@+id/subtitle_view"
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?android:textColorSecondary"
+            tools:text="A blaze in the northern sky" />
+
+    <TextView
+            android:id="@+id/genre"
             style="@style/TextAppearance.AppCompat.Body1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
             android:textColor="?android:textColorSecondary"
-            tools:text="Very long and interesting\nsubtitle" />
+            tools:text="Black metal" />
 
 
 </LinearLayout>
