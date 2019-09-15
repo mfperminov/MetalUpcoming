@@ -2,6 +2,7 @@ package xyz.mperminov.metalupcoming
 
 import android.os.Bundle
 import android.os.Handler
+import android.os.Parcelable
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +19,6 @@ import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.END_PROGRESS
 import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.ERROR
 import xyz.mperminov.network.RawDataRepositoryNetwork.Companion.PROCEED_DATA
 import xyz.mperminov.parser.HrefStringParser
-import java.io.Serializable
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
@@ -79,7 +79,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             dataFuture = executor.submit(dataTask)
         } else {
             showProgress(false)
-            savedInstanceState.getSerializable(ALBUM_LIST_KEY)?.let {
+            if (savedInstanceState.getBoolean(NEED_REQUEST_DATA)) {
+                dataFuture = executor.submit(dataTask)
+                return
+            }
+            savedInstanceState.getParcelableArrayList<Album>(ALBUM_LIST_KEY)?.let {
                 val albumsList = it as List<Album>
                 if (albumsList.isEmpty()) {
                     dataFuture = executor.submit(dataTask)
@@ -98,10 +102,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putSerializable(
-            ALBUM_LIST_KEY,
-            (viewAdapter as AlbumAdapter).albums as Serializable
-        )
+        outState.putBoolean(NEED_REQUEST_DATA, needRequestData)
+        if ((viewAdapter as AlbumAdapter).albums.isNotEmpty())
+            outState.putParcelableArrayList(
+                ALBUM_LIST_KEY,
+                (viewAdapter as AlbumAdapter).albums as ArrayList<Parcelable>
+            )
     }
 
     override fun onStart() {
@@ -120,5 +126,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     companion object {
         private const val ALBUM_LIST_KEY = "albumList"
+        private const val NEED_REQUEST_DATA = "needRequestData"
     }
 }

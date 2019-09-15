@@ -5,7 +5,6 @@ import org.json.JSONObject
 import xyz.mperminov.model.Album
 import xyz.mperminov.parser.HrefStringParser
 import xyz.mperminov.parser.PARSE_ERROR
-import java.net.URL
 import java.util.concurrent.Callable
 
 class AlbumMapperJson(private val stringParser: HrefStringParser) : AlbumMapper {
@@ -50,7 +49,7 @@ class ParseAlbumTask(
         val genre = jsonArray.getString(3)
         val date = jsonArray.getString(4)
         return if (bandName != PARSE_ERROR && bandLink != PARSE_ERROR && albumLink != PARSE_ERROR && albumName != PARSE_ERROR)
-            Album(bandName, URL(bandLink), albumName, URL(albumLink), type, genre, date)
+            Album(bandName, bandLink, albumName, albumLink, type, genre, date)
         else Album.NONE
     }
 }
