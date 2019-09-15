@@ -8,7 +8,7 @@ import xyz.mperminov.parser.PARSE_ERROR
 import java.net.URL
 import java.util.concurrent.Callable
 
-class AlbumMapperJson(val stringParser: HrefStringParser) : AlbumMapper {
+class AlbumMapperJson(private val stringParser: HrefStringParser) : AlbumMapper {
 
     private fun getJsonObject(rawData: String) = JSONObject(rawData.replace("\"sEcho\": ,", ""))
     override fun parse(rawData: String): List<Album> {
@@ -26,11 +26,14 @@ class AlbumMapperJson(val stringParser: HrefStringParser) : AlbumMapper {
     }
 
     private fun parseJsonAlbumArray(jsonArray: JSONArray?): Callable<Album> {
-        return MyCallable(jsonArray, stringParser)
+        return ParseAlbumTask(jsonArray, stringParser)
     }
 }
 
-class MyCallable(val jsonArray: JSONArray?, private val stringParser: HrefStringParser) :
+class ParseAlbumTask(
+    private val jsonArray: JSONArray?,
+    private val stringParser: HrefStringParser
+) :
     Callable<Album> {
     override fun call(): Album {
         if (jsonArray == null) return Album.NONE
@@ -38,7 +41,7 @@ class MyCallable(val jsonArray: JSONArray?, private val stringParser: HrefString
         val bandLink = stringParser.getLinkFromHrefTag(jsonArray.getString(0))
         val albumName = stringParser.getTextInsideHrefTag(jsonArray.getString(1))
         val albumLink = stringParser.getLinkFromHrefTag(jsonArray.getString(1))
-        var type: Album.TYPE?
+        val type: Album.TYPE?
         try {
             type = Album.TYPE.fromString(jsonArray.getString(2))
         } catch (e: Exception) {
@@ -47,7 +50,7 @@ class MyCallable(val jsonArray: JSONArray?, private val stringParser: HrefString
         val genre = jsonArray.getString(3)
         val date = jsonArray.getString(4)
         return if (bandName != PARSE_ERROR && bandLink != PARSE_ERROR && albumLink != PARSE_ERROR && albumName != PARSE_ERROR)
-            Album(bandName, URL(bandLink), albumName, URL(albumLink), type!!, genre, date)
+            Album(bandName, URL(bandLink), albumName, URL(albumLink), type, genre, date)
         else Album.NONE
     }
 }
