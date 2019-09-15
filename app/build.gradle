@@ -4,13 +4,13 @@ apply plugin: 'kotlin-android-extensions'
 
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion Versions.compileSdk
     defaultConfig {
         applicationId "xyz.mperminov.metalupcoming"
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion Versions.minSdk
+        targetSdkVersion Versions.targetSdk
+        versionCode Versions.versionCode
+        versionName Versions.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -34,12 +34,12 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(":parser")
     implementation project(":data")
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.1.0'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0-beta-3'
-    implementation "androidx.appcompat:appcompat:1.1.0"
-    implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation Deps.kotlinStdlib
+    implementation Deps.androidxCore
+    implementation Deps.appcompat
+    implementation Deps.recyclerView
+    testImplementation Deps.junit
+    androidTestImplementation Deps.testRunner
+    androidTestImplementation Deps.espressoCore
+    debugImplementation Deps.leakCanary
 }
