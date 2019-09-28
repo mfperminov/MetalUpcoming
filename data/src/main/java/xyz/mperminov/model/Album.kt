@@ -45,6 +45,13 @@ data class Album(
         else false
     }
 
+    override fun hashCode(): Int {
+        var result = 17
+        result += band.hashCode()
+        result += albumTitle.hashCode()
+        return result
+    }
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(band)
         parcel.writeString(bandLink)
@@ -67,6 +74,7 @@ data class Album(
         override fun newArray(size: Int): Array<Album?> {
             return arrayOfNulls(size)
         }
+
         val NONE = Album(
             "",
             "https://www.metal-archives.com/",
