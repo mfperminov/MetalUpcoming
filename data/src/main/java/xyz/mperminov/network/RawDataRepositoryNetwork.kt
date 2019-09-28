@@ -7,12 +7,12 @@ import okhttp3.Request
 import xyz.mperminov.RawDataRepository
 
 class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository {
-    private lateinit var jsonGettingTask: JsonGettingTask
+    private var jsonGettingTask: JsonGettingTask? = null
 
     override fun getRawData() {
         jsonGettingTask = JsonGettingTask(handler)
-        val rawJsonString = jsonGettingTask.execute().get()
-        if (rawJsonString != "") {
+        val rawJsonString = jsonGettingTask?.execute()?.get()
+        if (rawJsonString != null && rawJsonString != "") {
             handler.sendMessage(
                 Message.obtain(handler, PROCEED_DATA, rawJsonString)
             )
@@ -20,7 +20,7 @@ class RawDataRepositoryNetwork(private val handler: Handler) : RawDataRepository
     }
 
     override fun cancel() {
-        jsonGettingTask.cancel(true)
+        jsonGettingTask?.cancel(true)
     }
 
     companion object {
