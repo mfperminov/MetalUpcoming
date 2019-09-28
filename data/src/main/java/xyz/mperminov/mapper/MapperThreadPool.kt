@@ -11,13 +11,12 @@ object MapperThreadPool {
     private val NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors()
     private const val KEEP_ALIVE_TIME: Long = 1
     private val KEEP_ALIVE_TIME_UNIT: TimeUnit = TimeUnit.SECONDS
-    private val taskQueue: BlockingQueue<Runnable> = LinkedBlockingQueue<Runnable>()
     private val executorService: ExecutorService = ThreadPoolExecutor(
         NUMBER_OF_CORES,
         NUMBER_OF_CORES,
         KEEP_ALIVE_TIME,
         KEEP_ALIVE_TIME_UNIT,
-        taskQueue,
+        LinkedBlockingQueue<Runnable>(),
         BackgroundThreadFactory()
     )
     private val taskList: MutableList<Callable<Album>> = ArrayList()

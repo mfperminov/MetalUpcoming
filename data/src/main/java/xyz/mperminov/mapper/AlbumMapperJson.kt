@@ -9,7 +9,6 @@ import java.util.concurrent.Callable
 
 class AlbumMapperJson(private val stringParser: HrefStringParser) : AlbumMapper {
 
-    private fun getJsonObject(rawData: String) = JSONObject(rawData.replace("\"sEcho\": ,", ""))
     override fun parse(rawData: String): List<Album> {
         val jsonObject = getJsonObject(rawData)
         val aaDataArray = jsonObject.getJSONArray("aaData")
@@ -23,6 +22,8 @@ class AlbumMapperJson(private val stringParser: HrefStringParser) : AlbumMapper 
 
         return results.filter { it != Album.NONE }.distinct()
     }
+
+    private fun getJsonObject(rawData: String) = JSONObject(rawData.replace("\"sEcho\": ,", ""))
 
     private fun parseJsonAlbumArray(jsonArray: JSONArray?): Callable<Album> {
         return ParseAlbumTask(jsonArray, stringParser)
