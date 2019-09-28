@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Parcelable
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.DividerItemDecoration.VERTICAL
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,15 +27,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private val uiHandler = Handler { message ->
         when {
-            message.what == ERROR -> Toast.makeText(
-                this,
-                (message.obj as Throwable).localizedMessage,
-                Toast.LENGTH_LONG
-            )
-                .show()
-            message.what == BEGIN_PROGRESS -> showProgress(true)
+            message.what == ERROR -> {
+                showErrorView(true)
+                needRequestData = true
+            }
+            message.what == BEGIN_PROGRESS -> {
+                showErrorView(false)
+                showProgress(true)
+            }
             message.what == END_PROGRESS -> showProgress(false)
             message.what == PROCEED_DATA -> {
+                showErrorView(false)
                 (viewAdapter as AlbumAdapter).setData(
                     AlbumMapperJson(HrefStringParser()).parse(
                         message.obj as String
@@ -43,7 +45,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 )
             }
         }
-
         true
     }
 
@@ -122,6 +123,15 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onStop()
         dataFuture?.cancel(true)
         uiHandler.removeCallbacksAndMessages(null)
+    }
+
+    private fun showErrorView(show: Boolean) {
+        error_view.visibility = if (show) View.VISIBLE else View.INVISIBLE
+        rv.visibility = if (show) View.INVISIBLE else View.VISIBLE
+        findViewById<AppCompatButton>(R.id.refresh_button).setOnClickListener {
+            dataFuture = executor.submit(dataTask)
+
+        }
     }
 
     companion object {
