@@ -86,13 +86,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
             savedInstanceState.getParcelableArrayList<Album>(ALBUM_LIST_KEY)?.let {
                 val albumsList = it as List<Album>
-                if (albumsList.isEmpty()) {
-                    dataFuture = executor.submit(dataTask)
-                } else {
-                    (viewAdapter as AlbumAdapter).setData(
-                        albumsList
-                    )
-                }
+                (viewAdapter as AlbumAdapter).setData(
+                    albumsList
+                )
             }
         }
     }
