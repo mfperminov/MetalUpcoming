@@ -14,6 +14,8 @@ object Versions {
     val versionCode = 1
     val versionName = "1.0"
     val androidGradlePlugin = "3.5.0"
+    val coordinatorLayout = "1.1.0-beta01"
+    val googleMaterial = "1.1.0-beta01"
 }
 
 object Deps {
@@ -28,4 +30,7 @@ object Deps {
     val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espressoCore}"
     val leakCanary = "com.squareup.leakcanary:leakcanary-android:${Versions.leakCanary}"
     val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
+    val coordinatorLayout =
+        "androidx.coordinatorlayout:coordinatorlayout:${Versions.coordinatorLayout}"
+    val googleMaterial = "com.google.android.material:material:${Versions.googleMaterial}"
 }

@@ -38,6 +38,8 @@ dependencies {
     implementation Deps.androidxCore
     implementation Deps.appcompat
     implementation Deps.recyclerView
+    implementation Deps.coordinatorLayout
+    implementation Deps.googleMaterial
     testImplementation Deps.junit
     androidTestImplementation Deps.testRunner
     androidTestImplementation Deps.espressoCore

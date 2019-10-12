@@ -16,12 +16,16 @@ class AlbumAdapter :
     private val band: Int = 44
     private val album: Int = 45
     private val genre: Int = 46
+    private val type: Int = 47
+    private val date: Int = 48
 
     class AlbumViewHolder(
         view: View,
         val bandTextView: TextView,
         val albumTextView: TextView,
-        val genreTextView: TextView
+        val genreTextView: TextView,
+        val typeTextView: TextView,
+        val dateTextView: TextView
     ) : RecyclerView.ViewHolder(view)
 
     fun setData(albums: List<Album>) {
@@ -41,7 +45,7 @@ class AlbumAdapter :
         root.layoutParams = rootLayoutParams
         root.orientation = LinearLayout.VERTICAL
         val bandTextView = TextView(parent.context).apply {
-            tag = band
+            id = band
             setTextAppearance(context, R.style.TextAppearance_AppCompat_Subhead)
         }
         val albumTextView = TextView(parent.context).apply {
@@ -49,14 +53,31 @@ class AlbumAdapter :
             setTextAppearance(context, R.style.TextAppearance_AppCompat_Body2)
         }
         val genreTextView = TextView(parent.context).apply {
-            tag = genre
-            setTextAppearance(context, R.style.TextAppearance_AppCompat_Body1)
+            id = genre
+            setTextAppearance(context, R.style.TextAppearance_AppCompat_Body2)
+        }
+        val typeTextView = TextView(parent.context).apply {
+            id = type
+            setTextAppearance(context, R.style.TextAppearance_AppCompat_Body2)
+        }
+        val dateTextView = TextView(parent.context).apply {
+            id = date
+            setTextAppearance(context, R.style.TextAppearance_AppCompat_Body2)
         }
         root.addView(bandTextView, -1, -2)
         root.addView(albumTextView, -1, -2)
         root.addView(genreTextView, -1, -2)
+        root.addView(typeTextView, -1, -2)
+        root.addView(dateTextView, -1, -2)
 
-        return AlbumViewHolder(root, bandTextView, albumTextView, genreTextView)
+        return AlbumViewHolder(
+            root,
+            bandTextView,
+            albumTextView,
+            genreTextView,
+            typeTextView,
+            dateTextView
+        )
     }
 
 
@@ -64,6 +85,8 @@ class AlbumAdapter :
         holder.bandTextView.text = albums[position].band
         holder.albumTextView.text = albums[position].albumTitle
         holder.genreTextView.text = albums[position].genre
+        holder.typeTextView.text = albums[position].type.toString()
+        holder.dateTextView.text = albums[position].date
     }
 
     override fun getItemCount() = albums.size
