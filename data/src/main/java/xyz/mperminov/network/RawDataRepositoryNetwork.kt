@@ -52,7 +52,6 @@ internal class JsonGettingTask(private val handler: Handler) :
                 response.body!!.close()
                 if (rawJson != null)
                     return rawJson
-
             }
         } catch (e: Exception) {
             handler.sendMessage(Message.obtain(handler, RawDataRepositoryNetwork.ERROR, e))

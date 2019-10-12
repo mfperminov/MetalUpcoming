@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private lateinit var viewAdapter: RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>
     private lateinit var viewManager: RecyclerView.LayoutManager
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewManager = LinearLayoutManager(this)
@@ -112,7 +111,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         if (needRequestData) {
             dataFuture = executor.submit(dataTask)
         }
-
     }
 
     override fun onStop() {
@@ -126,7 +124,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         rv.visibility = if (show) View.INVISIBLE else View.VISIBLE
         findViewById<AppCompatButton>(R.id.refresh_button).setOnClickListener {
             dataFuture = executor.submit(dataTask)
-
         }
     }
 

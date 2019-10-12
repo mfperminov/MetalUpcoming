@@ -3,7 +3,6 @@ package xyz.mperminov.network
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
-
 object HttpClient {
     private const val CALL_TIMEOUT: Long = 10
     val client: OkHttpClient by lazy {

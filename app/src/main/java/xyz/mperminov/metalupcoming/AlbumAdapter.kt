@@ -80,7 +80,6 @@ class AlbumAdapter :
         )
     }
 
-
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.bandTextView.text = albums[position].band
         holder.albumTextView.text = albums[position].albumTitle

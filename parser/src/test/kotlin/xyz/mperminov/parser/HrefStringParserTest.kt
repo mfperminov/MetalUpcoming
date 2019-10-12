@@ -3,7 +3,6 @@ package xyz.mperminov.parser
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-
 class HrefStringParserTest {
 
     val testStringNormal =
@@ -16,7 +15,6 @@ class HrefStringParserTest {
     val resultHrefLink = "https://www.metal-archives.com/bands/Herrschaft/79364"
     val emptyString = ""
     val randomString = "ferg345gg35g"
-
 
     //region Text inside href tag tests
     @Test
