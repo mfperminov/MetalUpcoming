@@ -3,9 +3,11 @@ package xyz.mperminov.metalupcoming
 import android.os.Bundle
 import android.os.Handler
 import android.os.Parcelable
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.DividerItemDecoration.VERTICAL
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -75,6 +77,19 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             adapter = viewAdapter
             addItemDecoration(DividerItemDecoration(this@MainActivity, VERTICAL))
         }
+        toolbar.inflateMenu(R.menu.menu_bottom_toolbar)
+        (toolbar.menu.findItem(R.id.search).actionView as SearchView).setOnQueryTextListener(object :
+            SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Log.d("onQuery", query)
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.d("onTextChange", newText)
+                return true
+            }
+        })
         if (savedInstanceState == null) {
             dataFuture = executor.submit(dataTask)
         } else {
