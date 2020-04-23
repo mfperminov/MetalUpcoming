@@ -1,19 +1,24 @@
 package xyz.mperminov.parser
 
-const val PARSE_ERROR = "PARSE ERROR"
+import java.net.URI
 
-class HrefStringParser {
+class HrefStringParser(
+    private val hrefTextRegex: Regex,
+    private val hrefLinkRegex: Regex
+) {
 
-    fun getTextInsideHrefTag(hrefStringToParse: String): String {
-        val found = RegexPatterns.TEXT_INSIDE_HREF_TAG.find(hrefStringToParse)
-        return if (found != null && found.groups[1] != null && found.groups[1]!!.value.isNotEmpty()) found.groups[1]!!.value else PARSE_ERROR
+    fun hrefText(hrefRawString: String): String {
+        val results = hrefTextRegex.find(hrefRawString)
+        return results?.groupValues?.get(1) ?: ""
     }
 
-    fun getLinkFromHrefTag(hrefStringToParse: String): String {
-        val found = RegexPatterns.LINK_INSIDE_HREF_TAG.find(hrefStringToParse)
-        return if (found != null && found.groups[1] != null && found.groups[1]!!.value.isNotEmpty()) found.groups[1]!!.value.replace(
-            "\"",
-            ""
-        ) else PARSE_ERROR
+    fun link(hrefRawString: String): Link {
+        val results = hrefLinkRegex.find(hrefRawString)
+        val text = results?.groupValues?.get(1)?.trim('"') ?: ""
+        return if (text.isNotEmpty()) {
+            Link(URI(text))
+        } else {
+            Link.EMPTY_LINK
+        }
     }
 }
