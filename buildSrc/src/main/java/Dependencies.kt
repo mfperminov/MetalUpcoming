@@ -13,6 +13,7 @@ object Versions {
     val androidGradlePlugin = "4.1.0-alpha07"
     val splitties = "3.0.0-alpha06"
     val lycheeVersion = "0.0.12"
+    val cardViewVersion = "1.0.0"
 }
 
 object Deps {
@@ -27,6 +28,7 @@ object Deps {
     val kotlinAndroidExtensions =
         "org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}"
     val splittiesViewDSL = "com.louiscad.splitties:splitties-views-dsl:${Versions.splitties}"
+    val cardView = "androidx.cardview:cardview:${Versions.cardViewVersion}"
     val splittiesRecyclerView =
         "com.louiscad.splitties:splitties-views-dsl-recyclerview:${Versions.splitties}"
     val lycheeExtendedPersistence =

@@ -2,4 +2,18 @@
 
     <style name="AppTheme" parent="android:Theme.Material.Light.DarkActionBar" />
 
+
+    <style name="Theme_Dark" parent="AppTheme">
+        <!-- Android colors -->
+        <item name="android:colorPrimary">@color/theme_dark_primary</item>
+        <item name="android:colorPrimaryDark">@color/theme_dark_primary_dark</item>
+        <item name="android:colorAccent">@color/theme_dark_accent</item>
+    </style>
+
+    <style name="Theme_Light" parent="AppTheme">
+        <!-- Android colors -->
+        <item name="android:colorPrimary">@color/theme_light_primary</item>
+        <item name="android:colorPrimaryDark">@color/theme_light_primary_dark</item>
+        <item name="android:colorAccent">@color/theme_light_accent</item>
+    </style>
 </resources>
