@@ -1,7 +1,5 @@
 object Versions {
-    val kotlin = "1.3.50"
-    val appcompat = "1.1.0"
-    val androidxCore = "1.1.0"
+    val kotlin = "1.3.72"
     val recyclerView = "1.1.0-beta04"
     val okhttp = "4.1.1"
     val junit = "4.12"
@@ -13,16 +11,12 @@ object Versions {
     val compileSdk = 29
     val versionCode = 1
     val versionName = "1.0"
-    val androidGradlePlugin = "3.5.0"
-    val coordinatorLayout = "1.1.0-beta01"
-    val googleMaterial = "1.1.0-beta01"
+    val androidGradlePlugin = "4.1.0-alpha07"
 }
 
 object Deps {
     val kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}"
-    val kotlin_gradle_plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
-    val appcompat = "androidx.appcompat:appcompat:${Versions.appcompat}"
-    val androidxCore = "androidx.core:core-ktx:${Versions.androidxCore}"
+    val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
     val recyclerView = "androidx.recyclerview:recyclerview:${Versions.recyclerView}"
     val junit = "junit:junit:${Versions.junit}"
     val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
@@ -30,7 +24,6 @@ object Deps {
     val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espressoCore}"
     val leakCanary = "com.squareup.leakcanary:leakcanary-android:${Versions.leakCanary}"
     val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
-    val coordinatorLayout =
-        "androidx.coordinatorlayout:coordinatorlayout:${Versions.coordinatorLayout}"
-    val googleMaterial = "com.google.android.material:material:${Versions.googleMaterial}"
+    val kotlinAndroidExtensions =
+        "org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}"
 }

@@ -2,13 +2,17 @@ package xyz.mperminov.parser
 
 import java.net.URI
 
-class Link(private val link: URI) {
+class Link(val uri: URI) {
     override fun toString(): String {
-        return link.toString()
+        return uri.toString()
     }
 
     override fun equals(other: Any?): Boolean {
-        return (other as? Link)?.link?.equals(link) ?: false
+        return (other as? Link)?.uri?.equals(uri) ?: false
+    }
+
+    override fun hashCode(): Int {
+        return uri.hashCode()
     }
 
     companion object {
