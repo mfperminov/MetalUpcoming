@@ -3,7 +3,6 @@ buildscript {
     repositories {
         google()
         jcenter()
-        
     }
     dependencies {
         classpath Deps.androidGradlePlugin
@@ -16,6 +15,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven { url 'https://dl.bintray.com/miha-x64/maven' }
     }
 }
 

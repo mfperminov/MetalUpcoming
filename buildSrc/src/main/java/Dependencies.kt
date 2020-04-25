@@ -1,6 +1,5 @@
 object Versions {
     val kotlin = "1.3.72"
-    val recyclerView = "1.1.0-beta04"
     val okhttp = "4.1.1"
     val junit = "4.12"
     val testRunner = "1.2.0"
@@ -12,12 +11,13 @@ object Versions {
     val versionCode = 1
     val versionName = "1.0"
     val androidGradlePlugin = "4.1.0-alpha07"
+    val splitties = "3.0.0-alpha06"
+    val lycheeVersion = "0.0.12"
 }
 
 object Deps {
     val kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}"
     val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
-    val recyclerView = "androidx.recyclerview:recyclerview:${Versions.recyclerView}"
     val junit = "junit:junit:${Versions.junit}"
     val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
     val testRunner = "androidx.test:runner:${Versions.testRunner}"
@@ -26,4 +26,12 @@ object Deps {
     val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
     val kotlinAndroidExtensions =
         "org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}"
+    val splittiesViewDSL = "com.louiscad.splitties:splitties-views-dsl:${Versions.splitties}"
+    val splittiesRecyclerView =
+        "com.louiscad.splitties:splitties-views-dsl-recyclerview:${Versions.splitties}"
+    val lycheeExtendedPersistence =
+        "net.aquadc.properties:extended-persistence:${Versions.lycheeVersion}"
+    val lycheeProperties = "net.aquadc.properties:properties:${Versions.lycheeVersion}"
+    val lycheePersistence = "net.aquadc.properties:persistence:${Versions.lycheeVersion}"
+    val lycheeAndroidBindings = "net.aquadc.properties:android-bindings:${Versions.lycheeVersion}"
 }

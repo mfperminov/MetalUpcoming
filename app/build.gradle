@@ -35,7 +35,13 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(":parser")
     implementation Deps.kotlinStdlib
-    implementation Deps.recyclerView
+    implementation Deps.splittiesViewDSL
+    implementation Deps.splittiesRecyclerView
+    implementation Deps.okhttp
+    implementation Deps.lycheeProperties
+    implementation Deps.lycheePersistence
+    implementation Deps.lycheeAndroidBindings
+    implementation Deps.lycheeExtendedPersistence
     testImplementation Deps.junit
     androidTestImplementation Deps.testRunner
     androidTestImplementation Deps.espressoCore

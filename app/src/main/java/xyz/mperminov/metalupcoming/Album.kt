@@ -38,19 +38,21 @@ data class AlbumInfo(
 
 inline class Genre(val value: String)
 
-data class Band(val name: String, val link: Link, val genre: Genre, val date: String) : Parcelable {
+data class Band(
+    val name: String,
+    val link: Link,
+    val genre: Genre
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         Link(parcel.readSerializable() as URI),
-        Genre(parcel.readString()!!),
-        parcel.readString()!!
+        Genre(parcel.readString()!!)
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(name)
         parcel.writeSerializable(link.uri)
         parcel.writeString(genre.value)
-        parcel.writeString(date)
     }
 
     override fun describeContents(): Int {
@@ -68,17 +70,24 @@ data class Band(val name: String, val link: Link, val genre: Genre, val date: St
     }
 }
 
-data class Album(val title: String, val link: Link, val type: TYPE) : Parcelable {
+data class Album(
+    val title: String,
+    val link: Link,
+    val type: TYPE,
+    val date: String
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         Link(parcel.readSerializable() as URI),
-        AlbumTypeFactory().albumType(parcel.readString()!!)
+        AlbumTypeFactory().albumType(parcel.readString()!!),
+        parcel.readString()!!
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(title)
         parcel.writeSerializable(link.uri)
         parcel.writeString(type.toString())
+        parcel.writeString(date)
     }
 
     override fun describeContents(): Int {
