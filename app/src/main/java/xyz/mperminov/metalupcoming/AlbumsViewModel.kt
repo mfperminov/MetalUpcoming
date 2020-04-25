@@ -7,6 +7,7 @@ import net.aquadc.properties.diff.calculateDiffOn
 import net.aquadc.properties.executor.WorkerOnExecutor
 import net.aquadc.properties.persistence.PropertyIo
 import net.aquadc.properties.persistence.memento.PersistableProperties
+import net.aquadc.properties.persistence.memento.restoreTo
 import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -21,6 +22,7 @@ import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
@@ -28,6 +30,7 @@ class AlbumsViewModel(
     state: ParcelPropertiesMemento?
 ) : PersistableProperties, Closeable {
     val albums = propertyOf(listOf<AlbumInfo>(), true)
+    private var loadingAlbumsInfo: Future<*>? = null
     val listState = propertyOf(ListState.Empty, true).also {
         it.addChangeListener { old, new ->
             progress.value =
@@ -57,14 +60,16 @@ class AlbumsViewModel(
     }
 
     override fun close() {
+        loadingAlbumsInfo?.cancel(true)
     }
 
     init {
+        if (state !== null) state.restoreTo(this)
         loadAlbums()
     }
 
     private fun loadAlbums() {
-        io.submit {
+        loadingAlbumsInfo = io.submit {
             listState.value = ListState.Loading
             albums.value = okHttpClient.value.fetchJson()
             listState.value = ListState.Ok
