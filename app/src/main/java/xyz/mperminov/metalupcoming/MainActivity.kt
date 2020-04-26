@@ -2,24 +2,19 @@ package xyz.mperminov.metalupcoming
 
 
 import android.content.res.Resources
-import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.annotation.IdRes
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import net.aquadc.persistence.struct.Schema
-import net.aquadc.persistence.struct.Struct
-import net.aquadc.persistence.struct.invoke
-import net.aquadc.persistence.type.collection
-import net.aquadc.persistence.type.string
 import splitties.experimental.InternalSplittiesApi
 import splitties.views.backgroundColor
-import splitties.views.dsl.core.styles.AndroidStyles
 import splitties.views.dsl.core.textView
 import splitties.views.dsl.core.view
 import splitties.views.dsl.recyclerview.recyclerView
@@ -28,18 +23,13 @@ import splitties.views.dsl.recyclerview.recyclerView
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
-
     @InternalSplittiesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val androidStyles = AndroidStyles(this)
         setTheme(R.style.Theme_Dark)
-
-        val progressBar = androidStyles.progressBar
         setContentView(
-
             recyclerView {
-                backgroundColor = Color.BLACK
+                backgroundColor = getColorFromTheme(R.attr.listBackground)
                 layoutManager = LinearLayoutManager(this@MainActivity)
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumHolder {
@@ -48,14 +38,101 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.WRAP_CONTENT
                             ).apply {
-                                setMargins(8.dp, 0, 8.dp, 8.dp)
+                                setMargins(8.dp, 8.dp, 8.dp, 0)
                             }
-                            setCardBackgroundColor(getColorFromTheme(android.R.attr.colorPrimaryDark))
+                            setCardBackgroundColor(getColorFromTheme(R.attr.cardBackgroundColor))
                             preventCornerOverlap = true
                             radius = 8.toPx
                             elevation = 4.toPx
                             minimumHeight = 64.dp
-                            addView(textView(id = 1))
+                            addView(view<RelativeLayout>() {
+                                addView(textView(id = GENRE_ID, theme = R.style.GenreTextStyle) {
+                                    layoutParams = RelativeLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                    ).apply {
+                                        setMargins(8.dp, 8.dp, 8.dp, 0)
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_START,
+                                            RelativeLayout.TRUE
+                                        )
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_TOP,
+                                            RelativeLayout.TRUE
+                                        )
+                                        addRule(RelativeLayout.LEFT_OF, DATE_ID)
+                                    }
+
+                                })
+                                addView(textView(id = DATE_ID, theme = R.style.DateTextStyle) {
+                                    layoutParams = RelativeLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                    ).apply {
+                                        setMargins(8.dp, 8.dp, 8.dp, 0)
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_END,
+                                            RelativeLayout.TRUE
+                                        )
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_TOP,
+                                            RelativeLayout.TRUE
+                                        )
+                                    }
+                                })
+                                addView(textView(id = BAND_ID, theme = R.style.BandTextStyle) {
+                                    layoutParams = RelativeLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                    ).apply {
+                                        setMargins(8.dp, 8.dp, 8.dp, 0)
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_START,
+                                            RelativeLayout.TRUE
+                                        )
+                                        addRule(
+                                            RelativeLayout.BELOW,
+                                            GENRE_ID
+                                        )
+                                    }
+                                })
+                                addView(
+                                    textView(
+                                        id = ALBUM_ID,
+                                        theme = R.style.AlbumTitleTextStyle
+                                    ) {
+                                        layoutParams = RelativeLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                                            ViewGroup.LayoutParams.WRAP_CONTENT
+                                        ).apply {
+                                            setMargins(8.dp, 0, 8.dp, 0)
+                                            addRule(
+                                                RelativeLayout.ALIGN_PARENT_START,
+                                                RelativeLayout.TRUE
+                                            )
+                                            addRule(
+                                                RelativeLayout.BELOW,
+                                                BAND_ID
+                                            )
+                                        }
+                                    })
+                                addView(textView(id = TYPE_ID, theme = R.style.AlbumTypeTextStyle) {
+                                    layoutParams = RelativeLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                    ).apply {
+                                        setMargins(8.dp, 8.dp, 8.dp, 8.dp)
+                                        addRule(
+                                            RelativeLayout.ALIGN_PARENT_START,
+                                            RelativeLayout.TRUE
+                                        )
+                                        addRule(
+                                            RelativeLayout.BELOW,
+                                            ALBUM_ID
+                                        )
+                                    }
+                                })
+                            })
                         }
                         return AlbumHolder(cardView)
                     }
@@ -63,16 +140,15 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     override fun getItemCount(): Int = vm.diffData.value.size
 
                     override fun onBindViewHolder(holder: AlbumHolder, position: Int) {
-                        holder.bind(vm.diffData.value[position].band.name)
+                        holder.bind(vm.diffData.value[position])
                     }
 
-                    private var recyclers = 0
                     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-                        if (recyclers++ == 0) vm.diffData.addChangeListener(onChange)
+                        vm.diffData.addChangeListener(onChange)
                     }
 
                     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-                        if (--recyclers == 0) vm.diffData.removeChangeListener(onChange)
+                        vm.diffData.removeChangeListener(onChange)
                     }
 
                     private val onChange: (List<AlbumInfo>, List<AlbumInfo>, DiffUtil.DiffResult) -> Unit =
@@ -87,8 +163,12 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
     }
 
     class AlbumHolder(val cardView: CardView) : RecyclerView.ViewHolder(cardView) {
-        fun bind(value: String) {
-            cardView.findViewById<TextView>(1).text = value
+        fun bind(albumInfo: AlbumInfo) {
+            cardView.findViewById<TextView>(GENRE_ID).text = albumInfo.band.genre.value
+            cardView.findViewById<TextView>(DATE_ID).text = albumInfo.album.date
+            cardView.findViewById<TextView>(BAND_ID).text = albumInfo.band.name
+            cardView.findViewById<TextView>(ALBUM_ID).text = albumInfo.album.title
+            cardView.findViewById<TextView>(TYPE_ID).text = albumInfo.album.type.value
         }
     }
 
@@ -97,44 +177,24 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         theme.resolveAttribute(id, typedValue, true)
         return typedValue.data
     }
-}
 
-object AlbumInfoSchema : Schema<AlbumInfoSchema>() {
-    val band = "band" let BandSchema
-    val album = "album" let AlbumSchema
-    val ListOf = collection(AlbumInfoSchema)
-}
+    companion object {
+        //card view ids
+        @IdRes
+        const val GENRE_ID = 1
 
-object BandSchema : Schema<BandSchema>() {
-    val name = "name" let string
-    val link = "link" let string
-    val genre = "genre" let string
-}
+        @IdRes
+        const val DATE_ID = 2
 
-object AlbumSchema : Schema<AlbumSchema>() {
-    val title = "name" let string
-    val link = "link" let string
-    val type = "genre" let string
-    val date = "date" let string
-}
+        @IdRes
+        const val BAND_ID = 3
 
-fun AlbumInfo(bandStruct: Struct<BandSchema>, albumStruct: Struct<AlbumSchema>) =
-    AlbumInfoSchema { s ->
-        s[band] = bandStruct
-        s[album] = albumStruct
+        @IdRes
+        const val ALBUM_ID = 4
+
+        @IdRes
+        const val TYPE_ID = 5
     }
-
-fun Band(band: Band) = BandSchema { s ->
-    s[name] = band.name
-    s[link] = band.link.toString()
-    s[genre] = band.genre.value
-}
-
-fun Album(album: Album) = AlbumSchema { s ->
-    s[title] = album.title
-    s[link] = album.link.toString()
-    s[type] = album.type.value
-    s[date] = album.date
 }
 
 val Int.dp: Int

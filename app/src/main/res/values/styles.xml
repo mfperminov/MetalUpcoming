@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="AppTheme" parent="android:Theme.Material.Light.DarkActionBar" />
+    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar" />
 
 
     <style name="Theme_Dark" parent="AppTheme">
@@ -8,6 +8,10 @@
         <item name="android:colorPrimary">@color/theme_dark_primary</item>
         <item name="android:colorPrimaryDark">@color/theme_dark_primary_dark</item>
         <item name="android:colorAccent">@color/theme_dark_accent</item>
+        <item name="listBackground">@color/dark_bg</item>
+        <item name="dateTextColor">@color/dark_date_text_color</item>
+        <item name="cardBackgroundColor">@color/dark_card_view_background_color</item>
+        <item name="bandTextColor">@color/dark_band_text_color</item>
     </style>
 
     <style name="Theme_Light" parent="AppTheme">
@@ -15,5 +19,38 @@
         <item name="android:colorPrimary">@color/theme_light_primary</item>
         <item name="android:colorPrimaryDark">@color/theme_light_primary_dark</item>
         <item name="android:colorAccent">@color/theme_light_accent</item>
+        <item name="listBackground">@color/light_bg</item>
+        <item name="dateTextColor">@color/light_date_text_color</item>
+        <item name="cardBackgroundColor">@color/light_card_view_background_color</item>
+        <item name="bandTextColor">@color/light_band_text_color</item>
     </style>
+
+    <style name="GenreTextStyle">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?android:attr/colorAccent</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="DateTextStyle">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/dateTextColor</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="BandTextStyle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/bandTextColor</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:lineSpacingExtra">2sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AlbumTitleTextStyle" parent="BandTextStyle">
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="AlbumTypeTextStyle" parent="DateTextStyle" />
 </resources>

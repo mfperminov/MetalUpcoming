@@ -40,9 +40,7 @@ dependencies {
     implementation Deps.splittiesRecyclerView
     implementation Deps.okhttp
     implementation Deps.lycheeProperties
-    implementation Deps.lycheePersistence
     implementation Deps.lycheeAndroidBindings
-    implementation Deps.lycheeExtendedPersistence
     testImplementation Deps.junit
     androidTestImplementation Deps.testRunner
     androidTestImplementation Deps.espressoCore

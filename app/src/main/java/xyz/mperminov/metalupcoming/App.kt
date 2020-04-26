@@ -14,10 +14,6 @@ class App : Application() {
     private val okHttp = lazy {
         OkHttpClient.Builder()
             .callTimeout(10, TimeUnit.SECONDS)
-            .addNetworkInterceptor { chain ->
-                Thread.sleep(1000)
-                chain.proceed(chain.request())
-            }
             .build()
     }
 

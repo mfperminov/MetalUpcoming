@@ -8,6 +8,14 @@
     <color name="theme_dark_primary_dark">#454545</color>
     <color name="theme_dark_accent">#6FCF97</color>
     <color name="theme_light_primary">#333333</color>
-    <color name="theme_light_primary_dark">#FAFAFA</color>
+    <color name="theme_light_primary_dark">#333333</color>
     <color name="theme_light_accent">#6FCF97</color>
+    <color name="light_bg">#F6F6F6</color>
+    <color name="dark_bg">#212121</color>
+    <color name="light_date_text_color">#828282</color>
+    <color name="dark_date_text_color">#828282</color>
+    <color name="light_card_view_background_color">#FFFFFF</color>
+    <color name="dark_card_view_background_color">#454545</color>
+    <color name="light_band_text_color">#000000</color>
+    <color name="dark_band_text_color">#FFFFFF</color>
 </resources>

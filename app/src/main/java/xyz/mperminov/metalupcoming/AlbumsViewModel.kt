@@ -31,13 +31,8 @@ class AlbumsViewModel(
 ) : PersistableProperties, Closeable {
     val albums = propertyOf(listOf<AlbumInfo>(), true)
     private var loadingAlbumsInfo: Future<*>? = null
-    val listState = propertyOf(ListState.Empty, true).also {
-        it.addChangeListener { old, new ->
-            progress.value =
-                new == ListState.Loading // trigger selectedItem and selectedItemPosition changes
-        }
-    }
-    val progress = propertyOf(false, true)
+    val listState = propertyOf(ListState.Empty, true)
+
 
     val diffData =
         albums.calculateDiffOn(worker) { old, new ->
