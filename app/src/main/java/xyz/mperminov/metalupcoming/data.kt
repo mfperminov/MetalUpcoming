@@ -5,7 +5,7 @@ import android.os.Parcelable
 import xyz.mperminov.parser.Link
 import java.net.URI
 
-data class AlbumInfo(
+class AlbumInfo(
     val band: Band,
     val album: Album
 ) : Parcelable {
@@ -25,6 +25,20 @@ data class AlbumInfo(
         return 0
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other !is AlbumInfo) return false
+        if (other === this) return true
+        return other.band.name == this.band.name && other.album.title == this.album.title
+    }
+
+    override fun hashCode(): Int {
+        var result = 17
+        result *= this.band.name.hashCode()
+        result *= this.album.title.hashCode()
+        return result
+    }
+
     companion object CREATOR : Parcelable.Creator<Album> {
         override fun createFromParcel(parcel: Parcel): Album {
             return Album(parcel)
@@ -38,7 +52,7 @@ data class AlbumInfo(
 
 inline class Genre(val value: String)
 
-data class Band(
+class Band(
     val name: String,
     val link: Link,
     val genre: Genre
@@ -70,7 +84,7 @@ data class Band(
     }
 }
 
-data class Album(
+class Album(
     val title: String,
     val link: Link,
     val type: TYPE,
@@ -110,6 +124,7 @@ data class Album(
         DEMO("Demo"),
         SINGLE("Single"),
         COMPILATION("Compilation"),
+        SPLIT("Split"),
         UNKNOWN("");
 
         override fun toString(): String = value

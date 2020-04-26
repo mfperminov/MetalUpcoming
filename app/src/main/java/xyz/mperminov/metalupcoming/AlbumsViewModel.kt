@@ -112,7 +112,7 @@ private fun OkHttpClient.fetchJson(
             )
             albumInfo.add(AlbumInfo(band, album))
         }
-        albumInfo
+        albumInfo.distinct()
     } catch (e: Exception) {
         println(e.message)
         println(json)

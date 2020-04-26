@@ -36,6 +36,7 @@ dependencies {
     implementation project(":parser")
     implementation Deps.kotlinStdlib
     implementation Deps.splittiesViewDSL
+    implementation Deps.splittiesViewDSLMaterial
     implementation Deps.cardView
     implementation Deps.splittiesRecyclerView
     implementation Deps.okhttp

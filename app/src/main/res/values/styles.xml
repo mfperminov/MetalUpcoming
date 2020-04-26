@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar" />
 
 
     <style name="Theme_Dark" parent="AppTheme">
@@ -12,6 +12,7 @@
         <item name="dateTextColor">@color/dark_date_text_color</item>
         <item name="cardBackgroundColor">@color/dark_card_view_background_color</item>
         <item name="bandTextColor">@color/dark_band_text_color</item>
+        <item name="toolbarColor">@color/dark_toolbar_color</item>
     </style>
 
     <style name="Theme_Light" parent="AppTheme">
@@ -23,6 +24,7 @@
         <item name="dateTextColor">@color/light_date_text_color</item>
         <item name="cardBackgroundColor">@color/light_card_view_background_color</item>
         <item name="bandTextColor">@color/light_band_text_color</item>
+        <item name="toolbarColor">@color/light_toolbar_color</item>
     </style>
 
     <style name="GenreTextStyle">

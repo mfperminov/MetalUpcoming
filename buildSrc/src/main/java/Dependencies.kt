@@ -28,12 +28,11 @@ object Deps {
     val kotlinAndroidExtensions =
         "org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}"
     val splittiesViewDSL = "com.louiscad.splitties:splitties-views-dsl:${Versions.splitties}"
+    val splittiesViewDSLMaterial =
+        "com.louiscad.splitties:splitties-views-dsl-material:${Versions.splitties}"
     val cardView = "androidx.cardview:cardview:${Versions.cardViewVersion}"
     val splittiesRecyclerView =
         "com.louiscad.splitties:splitties-views-dsl-recyclerview:${Versions.splitties}"
-    val lycheeExtendedPersistence =
-        "net.aquadc.properties:extended-persistence:${Versions.lycheeVersion}"
     val lycheeProperties = "net.aquadc.properties:properties:${Versions.lycheeVersion}"
-    val lycheePersistence = "net.aquadc.properties:persistence:${Versions.lycheeVersion}"
     val lycheeAndroidBindings = "net.aquadc.properties:android-bindings:${Versions.lycheeVersion}"
 }
