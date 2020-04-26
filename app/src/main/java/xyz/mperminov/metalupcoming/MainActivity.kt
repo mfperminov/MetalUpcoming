@@ -51,6 +51,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     }
 
                     addView(toolbar {
+                        setTitle(R.string.app_name)
                         backgroundColor = getColorFromTheme(R.attr.toolbarColor)
                         layoutParams = AppBarLayout.LayoutParams(matchParent, wrapContent).apply {
                             scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
@@ -65,7 +66,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         }
                     })
                 })
-            addView(recyclerView {
+            addView(recyclerView(id = 8) {
 
                 backgroundColor = getColorFromTheme(R.attr.listBackground)
                 layoutManager = LinearLayoutManager(this@MainActivity)
@@ -105,12 +106,13 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
     }
 
     private fun flipTheme() {
+
         recreate()
     }
 
     override fun onDestroy() {
         handler?.removeCallbacksAndMessages(null)
-        handler = null
+        findViewById<RecyclerView>(8).adapter = null
         super.onDestroy()
     }
 
