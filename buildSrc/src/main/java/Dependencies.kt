@@ -5,7 +5,7 @@ object Versions {
     val testRunner = "1.2.0"
     val espressoCore = "3.2.0"
     val leakCanary = "2.0-beta-3"
-    val minSdk = 21
+    val minSdk = 23
     val targetSdk = 29
     val compileSdk = 29
     val versionCode = 1

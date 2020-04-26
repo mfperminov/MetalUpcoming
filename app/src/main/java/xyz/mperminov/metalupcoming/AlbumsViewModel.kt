@@ -33,7 +33,6 @@ class AlbumsViewModel(
     private var loadingAlbumsInfo: Future<*>? = null
     val listState = propertyOf(ListState.Empty, true)
 
-
     val diffData =
         albums.calculateDiffOn(worker) { old, new ->
             DiffUtil.calculateDiff(object : DiffUtil.Callback() {

@@ -1,27 +1,31 @@
 package xyz.mperminov.metalupcoming
 
 
+import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
+import android.view.Menu
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.annotation.IdRes
 import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
 import splitties.experimental.InternalSplittiesApi
 import splitties.views.backgroundColor
+import splitties.views.dsl.appcompat.toolbar
 import splitties.views.dsl.core.matchParent
 import splitties.views.dsl.core.textView
 import splitties.views.dsl.core.view
 import splitties.views.dsl.core.wrapContent
-import splitties.views.dsl.material.MaterialComponentsStyles
 import splitties.views.dsl.material.appBarLayout
 import splitties.views.dsl.recyclerview.recyclerView
 import splitties.views.gravityBottom
@@ -31,16 +35,42 @@ import splitties.views.gravityEnd
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
+    private var handler: Handler? = Handler(Looper.getMainLooper())
+
     @InternalSplittiesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme(R.style.Theme_Dark)
-        val materialStyles = MaterialComponentsStyles(this)
-        val c = view<CoordinatorLayout> {
+        if (savedInstanceState == null)
+            setTheme(R.style.Theme_Dark) else setTheme(R.style.Theme_Light)
+        val coordinator = view<CoordinatorLayout> {
+            addView(
+                appBarLayout {
+                    layoutParams = CoordinatorLayout.LayoutParams(matchParent, wrapContent).apply {
+                        gravity = gravityBottom or gravityEnd
+                        behavior = HideBottomViewOnScrollBehavior<AppBarLayout>()
+                    }
+
+                    addView(toolbar {
+                        backgroundColor = getColorFromTheme(R.attr.toolbarColor)
+                        layoutParams = AppBarLayout.LayoutParams(matchParent, wrapContent).apply {
+                            scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
+                                AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+                        }
+                        inflateMenu(R.menu.main_menu)
+                        setOnMenuItemClickListener { item ->
+                            if (item.itemId == R.id.flip_theme) {
+                                flipTheme()
+                            }
+                            true
+                        }
+                    })
+                })
             addView(recyclerView {
+
                 backgroundColor = getColorFromTheme(R.attr.listBackground)
                 layoutManager = LinearLayoutManager(this@MainActivity)
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
+
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumHolder {
                         val cardView = cardview()
                         return AlbumHolder(cardView)
@@ -62,29 +92,33 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
                     private val onChange: (List<AlbumInfo>, List<AlbumInfo>, DiffUtil.DiffResult) -> Unit =
                         { _, _, diff ->
-                            handler.post {
+                            this@MainActivity.handler?.post {
                                 diff.dispatchUpdatesTo(this)
                             }
                         }
                 }
             }
             )
-            addView(
-                appBarLayout {
-                    addView(materialStyles.bottomAppBar.default {
-                        layoutParams =
-                            CoordinatorLayout.LayoutParams(matchParent, wrapContent).apply {
-                                gravity = gravityBottom or gravityEnd
-                                behavior = AppBarLayout.ScrollingViewBehavior()
-                            }
-                        backgroundColor = getColorFromTheme(R.attr.toolbarColor)
-                    })
-                })
-
 
         }
-        setContentView(c)
+        setContentView(coordinator)
     }
+
+    private fun flipTheme() {
+        recreate()
+    }
+
+    override fun onDestroy() {
+        handler?.removeCallbacksAndMessages(null)
+        handler = null
+        super.onDestroy()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
 
     @InternalSplittiesApi
     private fun RecyclerView.cardview(): CardView {
@@ -207,21 +241,13 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         return typedValue.data
     }
 
+    @SuppressLint("ResourceType")
     companion object {
         //card view ids
-        @IdRes
         const val GENRE_ID = 1
-
-        @IdRes
         const val DATE_ID = 2
-
-        @IdRes
         const val BAND_ID = 3
-
-        @IdRes
         const val ALBUM_ID = 4
-
-        @IdRes
         const val TYPE_ID = 5
     }
 }
