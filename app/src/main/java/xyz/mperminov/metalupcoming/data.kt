@@ -15,6 +15,11 @@ class AlbumInfo(
         parcel.readParcelable<Album>(Album::class.java.classLoader) as Album
     )
 
+    fun matches(searchRequest: String): Boolean {
+        return arrayOf(this.band.name, this.band.genre.value, this.album.title, this.album.date)
+            .any { field -> field.contains(searchRequest, true) }
+    }
+
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeParcelable(band, flags)

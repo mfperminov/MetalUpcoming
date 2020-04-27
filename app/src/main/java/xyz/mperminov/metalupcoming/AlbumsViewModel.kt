@@ -3,11 +3,15 @@ package xyz.mperminov.metalupcoming
 import androidx.annotation.WorkerThread
 import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
+import net.aquadc.properties.MutableProperty
 import net.aquadc.properties.diff.calculateDiffOn
 import net.aquadc.properties.executor.WorkerOnExecutor
+import net.aquadc.properties.flatMap
+import net.aquadc.properties.map
 import net.aquadc.properties.persistence.PropertyIo
 import net.aquadc.properties.persistence.memento.PersistableProperties
 import net.aquadc.properties.persistence.memento.restoreTo
+import net.aquadc.properties.persistence.x
 import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -29,28 +33,31 @@ class AlbumsViewModel(
     private val io: ExecutorService,
     state: ParcelPropertiesMemento?
 ) : PersistableProperties, Closeable {
-    val albums = propertyOf(listOf<AlbumInfo>(), true)
+    val albums = AlbumInfoState(
+        propertyOf(emptyList(), true),
+        propertyOf(ListState.Empty, true),
+        propertyOf("", true)
+    )
+
     private var loadingAlbumsInfo: Future<*>? = null
-    val listState = propertyOf(ListState.Empty, true)
 
-    val diffData =
-        albums.calculateDiffOn(worker) { old, new ->
-            DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize(): Int = old.size
-                override fun getNewListSize(): Int = new.size
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-                    old[oldItemPosition] == new[newItemPosition]
+    val diffData = albums.filtered.calculateDiffOn(worker) { old, new ->
+        DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = old.size
+            override fun getNewListSize(): Int = new.size
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+                old[oldItemPosition] == new[newItemPosition]
 
-                override fun areContentsTheSame(
-                    oldItemPosition: Int,
-                    newItemPosition: Int
-                ): Boolean =
-                    old[oldItemPosition] == new[newItemPosition]
-            })
-        }
+            override fun areContentsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int
+            ): Boolean =
+                old[oldItemPosition] == new[newItemPosition]
+        })
+    }
 
     override fun saveOrRestore(io: PropertyIo) {
-
+        io x albums.searchRequest
     }
 
     override fun close() {
@@ -64,9 +71,9 @@ class AlbumsViewModel(
 
     private fun loadAlbums() {
         loadingAlbumsInfo = io.submit {
-            listState.value = ListState.Loading
-            albums.value = okHttpClient.value.fetchJson()
-            listState.value = ListState.Ok
+            albums.listState.value = ListState.Loading
+            albums.items.value = okHttpClient.value.fetchJson()
+            albums.listState.value = ListState.Ok
         }
     }
 
@@ -126,3 +133,17 @@ enum class ListState {
 private fun Response.unwrap(): ResponseBody =
     if (isSuccessful) body!!
     else throw IOException("HTTP $code")
+
+class AlbumInfoState(
+    val items: MutableProperty<List<AlbumInfo>>,
+    val listState: MutableProperty<ListState>,
+    val searchRequest: MutableProperty<String>
+) {
+    val filtered =
+        items.flatMap { list ->
+            searchRequest.map { s ->
+                list.filter { it.matches(s) }
+            }
+        }
+}
+

@@ -6,11 +6,13 @@ import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -43,6 +45,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         if (savedInstanceState == null)
             setTheme(R.style.Theme_Dark) else setTheme(R.style.Theme_Light)
         val coordinator = view<CoordinatorLayout> {
+            backgroundColor = getColorFromTheme(R.attr.listBackground)
             addView(
                 appBarLayout {
                     layoutParams = CoordinatorLayout.LayoutParams(matchParent, wrapContent).apply {
@@ -58,6 +61,20 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                                 AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
                         }
                         inflateMenu(R.menu.main_menu)
+                        addView(view<SearchView> {
+                            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                                override fun onQueryTextSubmit(query: String?): Boolean {
+                                    query?.let { vm.albums.searchRequest.value = it }
+                                    return true
+                                }
+
+                                override fun onQueryTextChange(newText: String?): Boolean {
+                                    Log.d("new text", "$newText")
+                                    newText?.let { vm.albums.searchRequest.value = it }
+                                    return true
+                                }
+                            })
+                        })
                         setOnMenuItemClickListener { item ->
                             if (item.itemId == R.id.flip_theme) {
                                 flipTheme()
@@ -100,9 +117,12 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 }
             }
             )
-
         }
         setContentView(coordinator)
+    }
+
+    private fun startFilter() {
+
     }
 
     private fun flipTheme() {
