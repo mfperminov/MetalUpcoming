@@ -147,10 +147,14 @@ class AlbumInfoState(
         items.flatMap { list ->
             searchRequest.map { s ->
                 val filteredList = list.filter { it.matches(s) }
-                if (filteredList.isEmpty() && s.isNotEmpty()) listState.value = ListState.Empty
+                if (filteredList.isEmpty() && s.isNotEmpty()) {
+                    listState.value = ListState.Empty
+                } else {
+                    if (list.isEmpty()) listState.value = ListState.Error else listState.value =
+                        ListState.Ok
+                }
                 filteredList
             }
         }
-
 }
 
