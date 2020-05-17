@@ -3,4 +3,7 @@
     <string name="error_message">Something went wrong. Check Internet connection and try again</string>
     <string name="try_again_btn_label">Try again</string>
     <string name="search">Search</string>
+    <string name="nothing_found">Nothing found</string>
+    <string name="check_connection">Couldn\'t upload the data. Check the connection.</string>
+    <string name="retry">Retry</string>
 </resources>

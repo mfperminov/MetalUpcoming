@@ -13,6 +13,7 @@
         <item name="cardBackgroundColor">@color/dark_card_view_background_color</item>
         <item name="bandTextColor">@color/dark_band_text_color</item>
         <item name="toolbarColor">@color/dark_toolbar_color</item>
+        <item name="iconsColor">@color/light_icons_color</item>
     </style>
 
     <style name="Theme_Light" parent="AppTheme">
@@ -25,6 +26,7 @@
         <item name="cardBackgroundColor">@color/light_card_view_background_color</item>
         <item name="bandTextColor">@color/light_band_text_color</item>
         <item name="toolbarColor">@color/light_toolbar_color</item>
+        <item name="iconsColor">@color/dark_icons_color</item>
     </style>
 
     <style name="GenreTextStyle">
@@ -55,4 +57,9 @@
     </style>
 
     <style name="AlbumTypeTextStyle" parent="DateTextStyle" />
+
+    <style name="StateTextStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?attr/iconsColor</item>
+    </style>
 </resources>

@@ -20,4 +20,7 @@
     <color name="dark_band_text_color">#FFFFFF</color>
     <color name="light_toolbar_color">#FAFAFA</color>
     <color name="dark_toolbar_color">#333333</color>
+    <color name="dark_icons_color">#000000</color>
+    <color name="light_icons_color">#DADADA</color>
+
 </resources>

@@ -8,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -23,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
+import net.aquadc.properties.android.bindings.view.bindVisibilitySoftlyTo
+import net.aquadc.properties.map
 import splitties.experimental.InternalSplittiesApi
 import splitties.views.backgroundColor
 import splitties.views.dsl.appcompat.toolbar
@@ -83,7 +84,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     })
                 })
             addView(recyclerView(id = 8) {
-
+                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Ok })
                 backgroundColor = getColorFromTheme(R.attr.listBackground)
                 layoutManager = LinearLayoutManager(this@MainActivity)
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
@@ -116,7 +117,14 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 }
             }
             )
+            addView(this@MainActivity.emptyView().apply {
+                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Empty })
+            })
+            addView(this@MainActivity.errorView { vm.loadAlbums() }.apply {
+                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Error })
+            })
         }
+
         setContentView(rootView)
     }
 
@@ -129,12 +137,6 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         findViewById<RecyclerView>(8).adapter = null
         super.onDestroy()
     }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
 
     @InternalSplittiesApi
     private fun RecyclerView.cardview(): CardView {

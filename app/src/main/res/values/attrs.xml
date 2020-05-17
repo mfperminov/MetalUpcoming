@@ -5,4 +5,5 @@
     <attr name="cardViewBackgroundColor" format="color" />
     <attr name="bandTextColor" format="color" />
     <attr name="toolbarColor" format="color" />
+    <attr name="iconsColor" format="color" />
 </resources>

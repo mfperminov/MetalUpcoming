@@ -35,7 +35,7 @@ class AlbumsViewModel(
 ) : PersistableProperties, Closeable {
     val albums = AlbumInfoState(
         propertyOf(emptyList(), true),
-        propertyOf(ListState.Empty, true),
+        propertyOf(ListState.Loading, true),
         propertyOf("", true)
     )
 
@@ -69,15 +69,15 @@ class AlbumsViewModel(
         loadAlbums()
     }
 
-    private fun loadAlbums() {
+    fun loadAlbums() {
         loadingAlbumsInfo = io.submit {
             albums.listState.value = ListState.Loading
             try {
                 albums.items.value = okHttpClient.value.fetchJson()
+                albums.listState.value = ListState.Ok
             } catch (e: Exception) {
                 albums.listState.value = ListState.Error
             }
-            albums.listState.value = ListState.Ok
         }
     }
 
@@ -146,8 +146,11 @@ class AlbumInfoState(
     val filtered =
         items.flatMap { list ->
             searchRequest.map { s ->
-                list.filter { it.matches(s) }
+                val filteredList = list.filter { it.matches(s) }
+                if (filteredList.isEmpty() && s.isNotEmpty()) listState.value = ListState.Empty
+                filteredList
             }
         }
+
 }
 
