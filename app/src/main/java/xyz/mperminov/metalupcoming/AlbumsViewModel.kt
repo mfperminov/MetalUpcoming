@@ -1,5 +1,6 @@
 package xyz.mperminov.metalupcoming
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
@@ -35,7 +36,9 @@ class AlbumsViewModel(
 ) : PersistableProperties, Closeable {
     val albums = AlbumInfoState(
         propertyOf(emptyList(), true),
-        propertyOf(ListState.Loading, true),
+        propertyOf(ListState.Empty, true).apply {
+            this.addChangeListener { old, new -> Log.d("ListState", "$old -> $new") }
+        },
         propertyOf("", true)
     )
 
@@ -71,12 +74,12 @@ class AlbumsViewModel(
 
     fun loadAlbums() {
         loadingAlbumsInfo = io.submit {
-            albums.listState.value = ListState.Loading
+            albums._listState.value = ListState.Loading
             try {
                 albums.items.value = okHttpClient.value.fetchJson()
-                albums.listState.value = ListState.Ok
+                albums._listState.value = ListState.Ok
             } catch (e: Exception) {
-                albums.listState.value = ListState.Error
+                albums._listState.value = ListState.Error
             }
         }
     }
@@ -140,21 +143,35 @@ private fun Response.unwrap(): ResponseBody =
 
 class AlbumInfoState(
     val items: MutableProperty<List<AlbumInfo>>,
-    val listState: MutableProperty<ListState>,
+    val _listState: MutableProperty<ListState>,
     val searchRequest: MutableProperty<String>
 ) {
     val filtered =
         items.flatMap { list ->
             searchRequest.map { s ->
                 val filteredList = list.filter { it.matches(s) }
-                if (filteredList.isEmpty() && s.isNotEmpty()) {
-                    listState.value = ListState.Empty
-                } else {
-                    if (list.isEmpty()) listState.value = ListState.Error else listState.value =
-                        ListState.Ok
-                }
                 filteredList
             }
         }
+    val listState = filtered.flatMap { filtered: List<AlbumInfo> ->
+        _listState.map {
+            if (filtered.isEmpty()) {
+                when (it) {
+                    ListState.Empty -> ListState.Empty
+                    ListState.Loading -> ListState.Loading
+                    ListState.Ok -> ListState.Empty
+                    ListState.Error -> ListState.Error
+                }
+            } else {
+                when (it) {
+                    ListState.Empty -> ListState.Ok
+                    ListState.Loading -> ListState.Loading
+                    ListState.Ok -> ListState.Ok
+                    ListState.Error -> ListState.Ok
+                }
+            }
+        }
+    }
 }
+
 

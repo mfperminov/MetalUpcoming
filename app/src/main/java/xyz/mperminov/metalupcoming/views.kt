@@ -1,6 +1,8 @@
 package xyz.mperminov.metalupcoming
 
 import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
@@ -70,4 +72,13 @@ fun Context.errorView(reloadClickListener: (View) -> Unit): View {
             }
         })
     }
+}
+
+fun Context.isDarkSystemThemeOn(): Boolean {
+    return resources.configuration.uiMode and
+        Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
+}
+
+enum class Theme {
+    DARK, LIGHT
 }

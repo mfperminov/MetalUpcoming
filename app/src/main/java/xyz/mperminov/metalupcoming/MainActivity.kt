@@ -2,6 +2,7 @@ package xyz.mperminov.metalupcoming
 
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
@@ -44,8 +45,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
     @InternalSplittiesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null)
-            setTheme(R.style.Theme_Dark) else setTheme(R.style.Theme_Light)
+        handleTheme()
         val rootView = view<CoordinatorLayout> {
             backgroundColor = getColorFromTheme(R.attr.listBackground)
             addView(
@@ -126,7 +126,39 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         setContentView(rootView)
     }
 
+    private fun handleTheme() {
+        val theme: Theme? = getThemeFromSettings()
+        if (theme == null) {
+            if (this.isDarkSystemThemeOn()) {
+                setTheme(R.style.Theme_Dark)
+                saveTheme(Theme.DARK)
+            } else {
+                setTheme(R.style.Theme_Light)
+                saveTheme(Theme.LIGHT)
+            }
+        } else {
+            when (theme) {
+                Theme.LIGHT -> setTheme(R.style.Theme_Light)
+                Theme.DARK -> setTheme(R.style.Theme_Dark)
+            }
+        }
+    }
+
+    private fun saveTheme(theme: Theme) {
+        this.getPreferences(Context.MODE_PRIVATE).edit().putString(THEME_KEY, theme.toString())
+            .apply()
+    }
+
+    private fun getThemeFromSettings(): Theme? {
+        val s = this.getPreferences(Context.MODE_PRIVATE).getString(THEME_KEY, null)
+        return if (s != null) Theme.valueOf(s) else null
+    }
+
     private fun flipTheme() {
+        when (requireNotNull(getThemeFromSettings())) {
+            Theme.LIGHT -> saveTheme(Theme.DARK)
+            Theme.DARK -> saveTheme(Theme.LIGHT)
+        }
         recreate()
     }
 
@@ -265,6 +297,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         const val BAND_ID = 3
         const val ALBUM_ID = 4
         const val TYPE_ID = 5
+        private val THEME_KEY = "THEME_KEY"
     }
 }
 
