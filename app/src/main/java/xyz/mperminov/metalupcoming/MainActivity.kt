@@ -9,8 +9,10 @@ import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.SearchView
 import android.widget.TextView
@@ -44,7 +46,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null)
             setTheme(R.style.Theme_Dark) else setTheme(R.style.Theme_Light)
-        val coordinator = view<CoordinatorLayout> {
+        val rootView = view<CoordinatorLayout> {
             backgroundColor = getColorFromTheme(R.attr.listBackground)
             addView(
                 appBarLayout {
@@ -60,8 +62,11 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                             scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
                                 AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
                         }
-                        inflateMenu(R.menu.main_menu)
+                        setNavigationIcon(R.drawable.ic_settings_brightness_24px)
+                        setNavigationOnClickListener { flipTheme() }
                         addView(view<SearchView> {
+                            layoutDirection = View.LAYOUT_DIRECTION_RTL
+                            layoutParams = LinearLayout.LayoutParams(matchParent, wrapContent)
                             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                                 override fun onQueryTextSubmit(query: String?): Boolean {
                                     query?.let { vm.albums.searchRequest.value = it }
@@ -75,12 +80,6 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                                 }
                             })
                         })
-                        setOnMenuItemClickListener { item ->
-                            if (item.itemId == R.id.flip_theme) {
-                                flipTheme()
-                            }
-                            true
-                        }
                     })
                 })
             addView(recyclerView(id = 8) {
@@ -118,15 +117,10 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             }
             )
         }
-        setContentView(coordinator)
-    }
-
-    private fun startFilter() {
-
+        setContentView(rootView)
     }
 
     private fun flipTheme() {
-
         recreate()
     }
 

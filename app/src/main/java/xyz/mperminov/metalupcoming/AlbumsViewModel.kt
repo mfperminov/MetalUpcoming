@@ -72,7 +72,11 @@ class AlbumsViewModel(
     private fun loadAlbums() {
         loadingAlbumsInfo = io.submit {
             albums.listState.value = ListState.Loading
-            albums.items.value = okHttpClient.value.fetchJson()
+            try {
+                albums.items.value = okHttpClient.value.fetchJson()
+            } catch (e: Exception) {
+                albums.listState.value = ListState.Error
+            }
             albums.listState.value = ListState.Ok
         }
     }
