@@ -83,6 +83,8 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 })
             addView(recyclerView(id = 8) {
                 bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Ok })
+                clipToPadding = false
+                setPadding(0, 0, 0, 4.dp)
                 backgroundColor = getColorFromTheme(R.attr.listBackground)
                 layoutManager = LinearLayoutManager(this@MainActivity)
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
