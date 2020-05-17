@@ -130,6 +130,9 @@ class Album(
         SINGLE("Single"),
         COMPILATION("Compilation"),
         SPLIT("Split"),
+        LIVE_ALBUM("Live album"),
+        COLLABORATION("Collaboration"),
+        BOXED_SET("Boxed set"),
         UNKNOWN("");
 
         override fun toString(): String = value

@@ -153,6 +153,7 @@ class AlbumInfoState(
                 filteredList
             }
         }
+
     val listState = filtered.flatMap { filtered: List<AlbumInfo> ->
         _listState.map {
             if (filtered.isEmpty()) {
