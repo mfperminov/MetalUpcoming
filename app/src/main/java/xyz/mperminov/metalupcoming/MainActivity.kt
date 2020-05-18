@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
-import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -47,7 +46,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
     private var handler: Handler? = Handler(Looper.getMainLooper())
     private val onClick: (AlbumInfo) -> Unit = { info ->
-        AlertDialog.Builder(ContextThemeWrapper(this, R.style.AlertDialogCustom)).setItems(
+        AlertDialog.Builder(this, R.style.AlertDialogCustom).setItems(
             R.array.MA_destinations
         ) { dialog, which ->
             when (which) {
@@ -55,7 +54,9 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 1 -> openPage(info.band.link)
             }
             dialog.dismiss()
-        }.show()
+        }
+            .setTitle(R.string.dialog_to_pages_title)
+            .show()
     }
 
     @InternalSplittiesApi

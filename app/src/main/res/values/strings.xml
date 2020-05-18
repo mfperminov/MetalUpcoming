@@ -6,6 +6,7 @@
     <string name="nothing_found">Nothing found</string>
     <string name="check_connection">Couldn\'t upload the data. Check the connection.</string>
     <string name="retry">Retry</string>
+    <string name="dialog_to_pages_title">More info at metal-archives.com</string>
     <string-array name="MA_destinations">
         <item>To the album page</item>
         <item>To the band page</item>

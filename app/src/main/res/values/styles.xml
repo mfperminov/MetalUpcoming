@@ -63,8 +63,9 @@
         <item name="android:textColor">?attr/iconsColor</item>
     </style>
 
-    <style name="AlertDialogCustom" parent="@android:style/Theme.Dialog">
-        <item name="android:textColorPrimary">?attr/iconsColor</item>
-        <item name="android:background">?attr/colorPrimary</item>
+    <style name="AlertDialogCustom" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">?attr/toolbarColor</item>
+        <item name="android:textColor">?attr/iconsColor</item>
+        <item name="textColorAlertDialogListItem">?attr/iconsColor</item>
     </style>
 </resources>
