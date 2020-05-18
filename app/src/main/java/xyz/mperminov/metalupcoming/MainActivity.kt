@@ -82,6 +82,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         setNavigationIcon(R.drawable.ic_settings_brightness_24px)
                         setNavigationOnClickListener { flipTheme() }
                         addView(view<SearchView> {
+                            queryHint = getString(R.string.search_hint)
                             layoutDirection = View.LAYOUT_DIRECTION_RTL
                             layoutParams = LinearLayout.LayoutParams(matchParent, wrapContent)
                             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
