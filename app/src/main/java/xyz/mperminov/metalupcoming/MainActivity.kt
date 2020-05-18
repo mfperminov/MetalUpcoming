@@ -105,7 +105,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
 
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumHolder {
-                        val cardView = cardview()
+                        val cardView = itemView()
                         return AlbumHolder(cardView, onClick)
                     }
 
@@ -188,7 +188,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         super.onDestroy()
     }
 
-    private fun RecyclerView.cardview(): CardView {
+    private fun itemView(): CardView {
         return CardView(this@MainActivity).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -202,56 +202,71 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             elevation = 4.toPx
             minimumHeight = 64.dp
             addView(RelativeLayout(this@MainActivity).apply {
-                addView(textView(id = GENRE_ID, theme = R.style.GenreTextStyle) {
-                    layoutParams = RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(8.dp, 8.dp, 8.dp, 0)
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_START,
-                            RelativeLayout.TRUE
-                        )
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_TOP,
-                            RelativeLayout.TRUE
-                        )
-                        addRule(RelativeLayout.LEFT_OF, DATE_ID)
-                    }
+                addView(
+                    textView(
+                        id = GENRE_ID,
+                        theme = R.style.GenreTextStyle
+                    ) {
+                        layoutParams = RelativeLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            setMargins(8.dp, 8.dp, 8.dp, 0)
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_START,
+                                RelativeLayout.TRUE
+                            )
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_TOP,
+                                RelativeLayout.TRUE
+                            )
+                            addRule(
+                                RelativeLayout.LEFT_OF,
+                                DATE_ID
+                            )
+                        }
 
-                })
-                addView(textView(id = DATE_ID, theme = R.style.DateTextStyle) {
-                    layoutParams = RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(8.dp, 8.dp, 8.dp, 0)
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_END,
-                            RelativeLayout.TRUE
-                        )
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_TOP,
-                            RelativeLayout.TRUE
-                        )
-                    }
-                })
-                addView(textView(id = BAND_ID, theme = R.style.BandTextStyle) {
-                    layoutParams = RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(8.dp, 8.dp, 8.dp, 0)
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_START,
-                            RelativeLayout.TRUE
-                        )
-                        addRule(
-                            RelativeLayout.BELOW,
-                            GENRE_ID
-                        )
-                    }
-                })
+                    })
+                addView(
+                    textView(
+                        id = DATE_ID,
+                        theme = R.style.DateTextStyle
+                    ) {
+                        layoutParams = RelativeLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            setMargins(8.dp, 8.dp, 8.dp, 0)
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_END,
+                                RelativeLayout.TRUE
+                            )
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_TOP,
+                                RelativeLayout.TRUE
+                            )
+                        }
+                    })
+                addView(
+                    textView(
+                        id = BAND_ID,
+                        theme = R.style.BandTextStyle
+                    ) {
+                        layoutParams = RelativeLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            setMargins(8.dp, 8.dp, 8.dp, 0)
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_START,
+                                RelativeLayout.TRUE
+                            )
+                            addRule(
+                                RelativeLayout.BELOW,
+                                GENRE_ID
+                            )
+                        }
+                    })
                 addView(
                     textView(
                         id = ALBUM_ID,
@@ -272,27 +287,34 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                             )
                         }
                     })
-                addView(textView(id = TYPE_ID, theme = R.style.AlbumTypeTextStyle) {
-                    layoutParams = RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(8.dp, 8.dp, 8.dp, 8.dp)
-                        addRule(
-                            RelativeLayout.ALIGN_PARENT_START,
-                            RelativeLayout.TRUE
-                        )
-                        addRule(
-                            RelativeLayout.BELOW,
-                            ALBUM_ID
-                        )
-                    }
-                })
+                addView(
+                    textView(
+                        id = TYPE_ID,
+                        theme = R.style.AlbumTypeTextStyle
+                    ) {
+                        layoutParams = RelativeLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            setMargins(8.dp, 8.dp, 8.dp, 8.dp)
+                            addRule(
+                                RelativeLayout.ALIGN_PARENT_START,
+                                RelativeLayout.TRUE
+                            )
+                            addRule(
+                                RelativeLayout.BELOW,
+                                ALBUM_ID
+                            )
+                        }
+                    })
             })
         }
     }
 
-    class AlbumHolder(val cardView: CardView, private val onClickListener: (AlbumInfo) -> Unit) :
+    class AlbumHolder(
+        private val cardView: CardView,
+        private val onClickListener: (AlbumInfo) -> Unit
+    ) :
         RecyclerView.ViewHolder(cardView) {
         fun bind(albumInfo: AlbumInfo) {
             cardView.findViewById<TextView>(GENRE_ID).text = albumInfo.band.genre.value
@@ -307,7 +329,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         }
     }
 
-    fun getColorFromTheme(id: Int): Int {
+    private fun getColorFromTheme(id: Int): Int {
         val typedValue = TypedValue()
         theme.resolveAttribute(id, typedValue, true)
         return typedValue.data
@@ -331,7 +353,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         const val ALBUM_ID = 4
         const val TYPE_ID = 5
         const val RECYCLER_VIEW_ID = 8
-        private val THEME_KEY = "THEME_KEY"
+        private const val THEME_KEY = "THEME_KEY"
     }
 }
 
