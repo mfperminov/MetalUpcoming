@@ -143,7 +143,7 @@ class Album(
     }
 }
 
-class AlbumTypeFactory() {
+class AlbumTypeFactory {
     fun albumType(s: String): Album.TYPE {
         for (t in Album.TYPE.values) {
             if (t.value.equals(s, ignoreCase = true)) {
