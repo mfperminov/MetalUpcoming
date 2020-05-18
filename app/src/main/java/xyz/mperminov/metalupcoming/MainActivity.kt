@@ -27,12 +27,10 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
 import net.aquadc.properties.android.bindings.view.bindVisibilitySoftlyTo
 import net.aquadc.properties.map
-import splitties.experimental.InternalSplittiesApi
 import splitties.views.backgroundColor
 import splitties.views.dsl.appcompat.toolbar
 import splitties.views.dsl.core.matchParent
 import splitties.views.dsl.core.textView
-import splitties.views.dsl.core.view
 import splitties.views.dsl.core.wrapContent
 import splitties.views.dsl.material.appBarLayout
 import splitties.views.dsl.recyclerview.recyclerView
@@ -59,11 +57,10 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             .show()
     }
 
-    @InternalSplittiesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleTheme()
-        val rootView = view<CoordinatorLayout> {
+        val rootView = CoordinatorLayout(this).apply {
             backgroundColor = getColorFromTheme(R.attr.listBackground)
             addView(
                 appBarLayout {
@@ -81,7 +78,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         }
                         setNavigationIcon(R.drawable.ic_settings_brightness_24px)
                         setNavigationOnClickListener { flipTheme() }
-                        addView(view<SearchView> {
+                        addView(SearchView(this@MainActivity).apply {
                             queryHint = getString(R.string.search_hint)
                             layoutDirection = View.LAYOUT_DIRECTION_RTL
                             layoutParams = LinearLayout.LayoutParams(matchParent, wrapContent)
@@ -191,9 +188,8 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         super.onDestroy()
     }
 
-    @InternalSplittiesApi
     private fun RecyclerView.cardview(): CardView {
-        return view<CardView> {
+        return CardView(this@MainActivity).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -205,7 +201,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             radius = 8.toPx
             elevation = 4.toPx
             minimumHeight = 64.dp
-            addView(view<RelativeLayout>() {
+            addView(RelativeLayout(this@MainActivity).apply {
                 addView(textView(id = GENRE_ID, theme = R.style.GenreTextStyle) {
                     layoutParams = RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
