@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import splitties.experimental.InternalSplittiesApi
 import splitties.views.dsl.core.matchParent
@@ -70,6 +71,18 @@ fun Context.errorView(reloadClickListener: (View) -> Unit): View {
             ).apply {
                 setMargins(0, 8.dp, 0, 0)
             }
+        })
+    }
+}
+
+@InternalSplittiesApi
+fun Context.progressView(): View {
+    return view<LinearLayout> {
+        layoutParams = LinearLayout.LayoutParams(matchParent, matchParent)
+        orientation = LinearLayout.VERTICAL
+        addView(view<ProgressBar> {
+            isIndeterminate = true
+            gravity = Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL
         })
     }
 }

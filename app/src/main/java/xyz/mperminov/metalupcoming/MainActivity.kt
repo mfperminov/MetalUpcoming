@@ -98,7 +98,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         })
                     })
                 })
-            addView(recyclerView(id = 8) {
+            addView(recyclerView(id = RECYCLER_VIEW_ID) {
                 bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Ok })
                 clipToPadding = false
                 setPadding(0, 0, 0, 4.dp)
@@ -139,6 +139,9 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             })
             addView(this@MainActivity.errorView { vm.loadAlbums() }.apply {
                 bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Error })
+            })
+            addView(this@MainActivity.progressView().apply {
+                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Loading })
             })
         }
 
@@ -183,7 +186,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
     override fun onDestroy() {
         handler?.removeCallbacksAndMessages(null)
-        findViewById<RecyclerView>(8).adapter = null
+        findViewById<RecyclerView>(RECYCLER_VIEW_ID).adapter = null
         super.onDestroy()
     }
 
@@ -330,6 +333,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         const val BAND_ID = 3
         const val ALBUM_ID = 4
         const val TYPE_ID = 5
+        const val RECYCLER_VIEW_ID = 8
         private val THEME_KEY = "THEME_KEY"
     }
 }
