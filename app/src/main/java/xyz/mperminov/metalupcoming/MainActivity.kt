@@ -3,11 +3,14 @@ package xyz.mperminov.metalupcoming
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -15,6 +18,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.SearchView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.DiffUtil
@@ -35,12 +39,24 @@ import splitties.views.dsl.material.appBarLayout
 import splitties.views.dsl.recyclerview.recyclerView
 import splitties.views.gravityBottom
 import splitties.views.gravityEnd
+import xyz.mperminov.parser.Link
 
 
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
     private var handler: Handler? = Handler(Looper.getMainLooper())
+    private val onClick: (AlbumInfo) -> Unit = { info ->
+        AlertDialog.Builder(ContextThemeWrapper(this, R.style.AlertDialogCustom)).setItems(
+            R.array.MA_destinations
+        ) { dialog, which ->
+            when (which) {
+                0 -> openPage(info.album.link)
+                1 -> openPage(info.band.link)
+            }
+            dialog.dismiss()
+        }.show()
+    }
 
     @InternalSplittiesApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +107,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumHolder {
                         val cardView = cardview()
-                        return AlbumHolder(cardView)
+                        return AlbumHolder(cardView, onClick)
                     }
 
                     override fun getItemCount(): Int = vm.diffData.value.size
@@ -275,13 +291,18 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         }
     }
 
-    class AlbumHolder(val cardView: CardView) : RecyclerView.ViewHolder(cardView) {
+    class AlbumHolder(val cardView: CardView, private val onClickListener: (AlbumInfo) -> Unit) :
+        RecyclerView.ViewHolder(cardView) {
         fun bind(albumInfo: AlbumInfo) {
             cardView.findViewById<TextView>(GENRE_ID).text = albumInfo.band.genre.value
             cardView.findViewById<TextView>(DATE_ID).text = albumInfo.album.date
             cardView.findViewById<TextView>(BAND_ID).text = albumInfo.band.name
             cardView.findViewById<TextView>(ALBUM_ID).text = albumInfo.album.title
             cardView.findViewById<TextView>(TYPE_ID).text = albumInfo.album.type.value
+
+            cardView.setOnClickListener {
+                onClickListener.invoke(albumInfo)
+            }
         }
     }
 
@@ -289,6 +310,15 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         val typedValue = TypedValue()
         theme.resolveAttribute(id, typedValue, true)
         return typedValue.data
+    }
+
+    private fun openPage(link: Link) {
+        startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse(link.uri.toString())
+            )
+        )
     }
 
     @SuppressLint("ResourceType")
