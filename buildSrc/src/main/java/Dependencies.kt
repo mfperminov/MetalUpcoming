@@ -1,6 +1,6 @@
 object Versions {
     val kotlin = "1.3.72"
-    val okhttp = "4.7.0"
+    val okhttp = "4.7.2"
     val junit = "4.12"
     val testRunner = "1.2.0"
     val espressoCore = "3.2.0"
@@ -21,6 +21,7 @@ object Deps {
     val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
     val junit = "junit:junit:${Versions.junit}"
     val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
+    val okhttpTesting = "com.squareup.okhttp3:mockwebserver:${Versions.okhttp}"
     val testRunner = "androidx.test:runner:${Versions.testRunner}"
     val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espressoCore}"
     val leakCanary = "com.squareup.leakcanary:leakcanary-android:${Versions.leakCanary}"
