@@ -5,12 +5,12 @@ object Versions {
     val testRunner = "1.2.0"
     val espressoCore = "3.2.0"
     val leakCanary = "2.0-beta-3"
-    val minSdk = 23
+    val minSdk = 24
     val targetSdk = 29
     val compileSdk = 29
     val versionCode = 1
     val versionName = "1.0"
-    val androidGradlePlugin = "4.1.0-alpha10"
+    val androidGradlePlugin = "4.2.0-alpha01"
     val splitties = "3.0.0-alpha06"
     val lycheeVersion = "0.0.12"
     val cardViewVersion = "1.0.0"
