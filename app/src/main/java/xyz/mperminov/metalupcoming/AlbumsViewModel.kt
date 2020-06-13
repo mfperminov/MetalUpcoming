@@ -14,6 +14,7 @@ import net.aquadc.properties.persistence.memento.PersistableProperties
 import net.aquadc.properties.persistence.memento.restoreTo
 import net.aquadc.properties.persistence.x
 import net.aquadc.properties.propertyOf
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -76,7 +77,7 @@ class AlbumsViewModel(
         loadingAlbumsInfo = io.submit {
             albums._listState.value = ListState.Loading
             try {
-                albums.items.value = okHttpClient.value.fetchJson()
+                albums.items.value = fetchJson(okHttpClient.value)
                 albums._listState.value = ListState.Ok
             } catch (e: Exception) {
                 albums._listState.value = ListState.Error
@@ -84,62 +85,70 @@ class AlbumsViewModel(
         }
     }
 
+    @WorkerThread
+    private fun fetchJson(
+        okHttpClient: OkHttpClient,
+        parser: HrefStringParser = HrefStringParser(
+            RegexFactory().regex<String>(),
+            RegexFactory().regex<Link>()
+        )
+    ): List<AlbumInfo> {
+
+        val json = okHttpClient.prepareCall(0, 100)
+            .execute()
+            .unwrap()
+            .string()
+
+        return try {
+            val obj = JSONObject(json)
+            val mainArray = obj.getJSONArray("aaData")
+            val albumInfo = LinkedList<AlbumInfo>()
+            for (i in 0 until mainArray.length()) {
+                val nextArr = mainArray.getJSONArray(i)
+                val band = Band(
+                    parser.hrefText(nextArr.getString(0)),
+                    parser.link(nextArr.getString(0)),
+                    Genre(nextArr.getString(3))
+                )
+                val album = Album(
+                    parser.hrefText(nextArr.getString(1)),
+                    parser.link(nextArr.getString(1)),
+                    AlbumTypeFactory().albumType(nextArr.getString(2)),
+                    nextArr.getString(4)
+                )
+                albumInfo.add(AlbumInfo(band, album))
+            }
+            albumInfo.distinct()
+        } catch (e: Exception) {
+            println(e.message)
+            println(json)
+            throw e
+        }
+    }
+
+    private fun OkHttpClient.prepareCall(offset: Int, length: Int = 100): Call {
+        return newCall(
+            Request.Builder().get().url(
+                "https://www.metal-archives.com/release/ajax-upcoming" +
+                    "/json/1?sEcho=0&iDisplayStart=${offset}&iDisplayLength=${length}"
+            )
+                .build()
+        )
+    }
+
+
+    private fun Response.unwrap(): ResponseBody =
+        if (isSuccessful) body!!
+        else throw IOException("HTTP $code")
+
     private companion object {
         val worker = WorkerOnExecutor(Executors.newSingleThreadExecutor())
-    }
-}
-
-@WorkerThread
-private fun OkHttpClient.fetchJson(
-    parser: HrefStringParser = HrefStringParser(
-        RegexFactory().regex<String>(),
-        RegexFactory().regex<Link>()
-    )
-): List<AlbumInfo> {
-
-    val json = newCall(
-        Request.Builder().get().url("https://www.metal-archives.com/release/ajax-upcoming/json/1")
-            .build()
-    )
-        .execute()
-        .unwrap()
-        .string()
-        .replace("\"sEcho\": ,", "")
-
-    return try {
-        val obj = JSONObject(json)
-        val mainArray = obj.getJSONArray("aaData")
-        val albumInfo = LinkedList<AlbumInfo>()
-        for (i in 0 until mainArray.length()) {
-            val nextArr = mainArray.getJSONArray(i)
-            val band = Band(
-                parser.hrefText(nextArr.getString(0)),
-                parser.link(nextArr.getString(0)),
-                Genre(nextArr.getString(3))
-            )
-            val album = Album(
-                parser.hrefText(nextArr.getString(1)),
-                parser.link(nextArr.getString(1)),
-                AlbumTypeFactory().albumType(nextArr.getString(2)),
-                nextArr.getString(4)
-            )
-            albumInfo.add(AlbumInfo(band, album))
-        }
-        albumInfo.distinct()
-    } catch (e: Exception) {
-        println(e.message)
-        println(json)
-        throw e
     }
 }
 
 enum class ListState {
     Empty, Loading, Ok, Error
 }
-
-private fun Response.unwrap(): ResponseBody =
-    if (isSuccessful) body!!
-    else throw IOException("HTTP $code")
 
 class AlbumInfoState(
     val items: MutableProperty<List<AlbumInfo>>,
@@ -155,20 +164,17 @@ class AlbumInfoState(
         }
 
     val listState = filtered.flatMap { filtered: List<AlbumInfo> ->
-        _listState.map {
+        _listState.map { originalState ->
             if (filtered.isEmpty()) {
-                when (it) {
-                    ListState.Empty -> ListState.Empty
-                    ListState.Loading -> ListState.Loading
+                when (originalState) {
                     ListState.Ok -> ListState.Empty
-                    ListState.Error -> ListState.Error
+                    else -> originalState
                 }
             } else {
-                when (it) {
+                when (originalState) {
                     ListState.Empty -> ListState.Ok
-                    ListState.Loading -> ListState.Loading
-                    ListState.Ok -> ListState.Ok
                     ListState.Error -> ListState.Ok
+                    else -> originalState
                 }
             }
         }
