@@ -74,19 +74,9 @@ class AlbumsViewModel(
                     .thenApplyAsync { count ->
                         val futures = mutableListOf<Future<List<AlbumInfo>>>()
                         for (i in 0..count step 100) {
-                            futures.add(CompletableFuture
-                                .supplyAsync {
-                                    FetchAlbumsJsonArray(
-                                        networkClient = okHttpClient.value,
-                                        offset = i,
-                                        length = 100
-                                    ).call()
-                                }
-                                .thenApplyAsync { jsonArray ->
-                                    MapJsonToAlbumInfoList(
-                                        jsonArray
-                                    ).call()
-                                })
+                            futures.add(
+                                albumPageFetchFuture(i)
+                            )
                         }
                         futures.map { it.get() }.flatten()
                     }
@@ -98,6 +88,25 @@ class AlbumsViewModel(
             }
         }
     }
+
+    private fun albumPageFetchFuture(offset: Int): CompletableFuture<List<AlbumInfo>> =
+        CompletableFuture
+            .supplyAsync {
+                FetchAlbumsJsonArray(
+                    networkClient = okHttpClient.value,
+                    offset = offset,
+                    length = 100
+                ).call()
+            }
+            .thenApplyAsync { jsonArray ->
+                MapJsonToAlbumInfoList(
+                    jsonArray
+                ).call()
+            }
+            .exceptionally { t: Throwable? ->
+                Log.e("AlbumPageFetch", "Failed for offset=$offset with cause: ${t?.message}")
+                emptyList()
+            }
 
     private companion object {
         val worker = WorkerOnExecutor(Executors.newSingleThreadExecutor())
