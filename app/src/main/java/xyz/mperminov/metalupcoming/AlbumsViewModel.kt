@@ -26,6 +26,7 @@ import xyz.mperminov.parser.RegexFactory
 import java.io.Closeable
 import java.io.IOException
 import java.util.LinkedList
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -77,9 +78,31 @@ class AlbumsViewModel(
         loadingAlbumsInfo = io.submit {
             albums._listState.value = ListState.Loading
             try {
-                albums.items.value = fetchJson(okHttpClient.value)
+                val fetchingAlbums = CompletableFuture
+                    .supplyAsync { FetchAlbumsCount(okHttpClient.value).call() }
+                    .thenApplyAsync { count ->
+                        val futures = mutableListOf<Future<List<AlbumInfo>>>()
+                        for (i in 0..count step 100) {
+                            futures.add(CompletableFuture
+                                .supplyAsync {
+                                    FetchAlbumsJsonArray(
+                                        networkClient = okHttpClient.value,
+                                        offset = i,
+                                        length = 100
+                                    ).call()
+                                }
+                                .thenApplyAsync { jsonArray ->
+                                    MapJsonToAlbumInfoList(
+                                        jsonArray
+                                    ).call()
+                                })
+                        }
+                        futures.map { it.get() }.flatten()
+                    }
+                albums.items.value = fetchingAlbums.get()
                 albums._listState.value = ListState.Ok
             } catch (e: Exception) {
+                Log.e("Execution", e.message ?: "")
                 albums._listState.value = ListState.Error
             }
         }

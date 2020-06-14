@@ -36,19 +36,41 @@ class FetchAlbumsCount(
             0
         }
     }
+}
 
-    private fun OkHttpClient.prepareCall(offset: Int, length: Int = 100, url: String): Call {
-        return newCall(
-            Request.Builder().get().url(
-                url.format(offset, length)
-            )
-                .build()
+fun OkHttpClient.prepareCall(offset: Int, length: Int = 100, url: String): Call {
+    return newCall(
+        Request.Builder().get().url(
+            url.format(offset, length)
         )
-    }
+            .build()
+    )
+}
 
-    private fun Response.unwrap(): ResponseBody =
-        if (isSuccessful) body!!
-        else throw IOException("HTTP $code")
+fun Response.unwrap(): ResponseBody =
+    if (isSuccessful) body!!
+    else throw IOException("HTTP $code")
+
+class FetchAlbumsJsonArray(
+    private val networkClient: OkHttpClient,
+    private val url: String = BASE_URL,
+    val offset: Int,
+    val length: Int = 100
+) :
+    Callable<JSONArray> {
+    override fun call(): JSONArray {
+        val json = networkClient.prepareCall(offset, length, url)
+            .execute()
+            .unwrap()
+            .string()
+        return try {
+            val obj = JSONObject(json)
+            return obj.getJSONArray("aaData")
+        } catch (e: Exception) {
+            Log.e("FetchAlbumsJsonArray", "${e.message}")
+            JSONArray()
+        }
+    }
 }
 
 class MapJsonToAlbumInfoList(
