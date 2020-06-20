@@ -78,7 +78,12 @@ class AlbumsViewModel(
                                 albumPageFetchFuture(i)
                             )
                         }
-                        futures.map { it.get() }.flatten()
+                        val unsortedList = futures.map { it.get() }.flatten()
+                        if (unsortedList.all { it.album.parsedDate() != Album.DATE_FORMAT.EPOCH_DATE }) {
+                            unsortedList.sortedBy { it.album.parsedDate().time }
+                        } else {
+                            unsortedList
+                        }
                     }
                 albums.items.value = fetchingAlbums.get()
                 albums._listState.value = ListState.Ok
