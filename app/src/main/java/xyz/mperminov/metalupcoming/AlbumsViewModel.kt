@@ -15,16 +15,8 @@ import net.aquadc.properties.persistence.memento.restoreTo
 import net.aquadc.properties.persistence.x
 import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody
-import org.json.JSONObject
-import xyz.mperminov.parser.HrefStringParser
-import xyz.mperminov.parser.Link
-import xyz.mperminov.parser.RegexFactory
 import java.io.Closeable
-import java.io.IOException
-import java.util.LinkedList
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -72,74 +64,63 @@ class AlbumsViewModel(
         loadAlbums()
     }
 
+    @WorkerThread
     fun loadAlbums() {
         loadingAlbumsInfo = io.submit {
             albums._listState.value = ListState.Loading
             try {
-                albums.items.value = okHttpClient.value.fetchJson()
+                val fetchingAlbums = CompletableFuture
+                    .supplyAsync { FetchAlbumsCount(okHttpClient.value).call() }
+                    .thenApplyAsync { count ->
+                        val futures = mutableListOf<Future<List<AlbumInfo>>>()
+                        for (i in 0..count step 100) {
+                            futures.add(
+                                albumPageFetchFuture(i)
+                            )
+                        }
+                        val unsortedList = futures.map { it.get() }.flatten()
+                        if (unsortedList.all { it.album.parsedDate() != Album.DATE_FORMAT.EPOCH_DATE }) {
+                            unsortedList.sortedBy { it.album.parsedDate().time }
+                        } else {
+                            unsortedList
+                        }
+                    }
+                albums.items.value = fetchingAlbums.get()
                 albums._listState.value = ListState.Ok
             } catch (e: Exception) {
+                Log.e("AlbumsViewModel", e.message ?: "")
                 albums._listState.value = ListState.Error
             }
         }
     }
+
+    private fun albumPageFetchFuture(offset: Int): CompletableFuture<List<AlbumInfo>> =
+        CompletableFuture
+            .supplyAsync {
+                FetchAlbumsJsonArray(
+                    networkClient = okHttpClient.value,
+                    offset = offset,
+                    length = 100
+                ).call()
+            }
+            .thenApplyAsync { jsonArray ->
+                MapJsonToAlbumInfoList(
+                    jsonArray
+                ).call()
+            }
+            .exceptionally { t: Throwable? ->
+                Log.e("AlbumPageFetch", "Failed for offset=$offset with cause: ${t?.message}")
+                emptyList()
+            }
 
     private companion object {
         val worker = WorkerOnExecutor(Executors.newSingleThreadExecutor())
     }
 }
 
-@WorkerThread
-private fun OkHttpClient.fetchJson(
-    parser: HrefStringParser = HrefStringParser(
-        RegexFactory().regex<String>(),
-        RegexFactory().regex<Link>()
-    )
-): List<AlbumInfo> {
-
-    val json = newCall(
-        Request.Builder().get().url("https://www.metal-archives.com/release/ajax-upcoming/json/1")
-            .build()
-    )
-        .execute()
-        .unwrap()
-        .string()
-        .replace("\"sEcho\": ,", "")
-
-    return try {
-        val obj = JSONObject(json)
-        val mainArray = obj.getJSONArray("aaData")
-        val albumInfo = LinkedList<AlbumInfo>()
-        for (i in 0 until mainArray.length()) {
-            val nextArr = mainArray.getJSONArray(i)
-            val band = Band(
-                parser.hrefText(nextArr.getString(0)),
-                parser.link(nextArr.getString(0)),
-                Genre(nextArr.getString(3))
-            )
-            val album = Album(
-                parser.hrefText(nextArr.getString(1)),
-                parser.link(nextArr.getString(1)),
-                AlbumTypeFactory().albumType(nextArr.getString(2)),
-                nextArr.getString(4)
-            )
-            albumInfo.add(AlbumInfo(band, album))
-        }
-        albumInfo.distinct()
-    } catch (e: Exception) {
-        println(e.message)
-        println(json)
-        throw e
-    }
-}
-
 enum class ListState {
     Empty, Loading, Ok, Error
 }
-
-private fun Response.unwrap(): ResponseBody =
-    if (isSuccessful) body!!
-    else throw IOException("HTTP $code")
 
 class AlbumInfoState(
     val items: MutableProperty<List<AlbumInfo>>,
@@ -155,24 +136,19 @@ class AlbumInfoState(
         }
 
     val listState = filtered.flatMap { filtered: List<AlbumInfo> ->
-        _listState.map {
+        _listState.map { originalState ->
             if (filtered.isEmpty()) {
-                when (it) {
-                    ListState.Empty -> ListState.Empty
-                    ListState.Loading -> ListState.Loading
+                when (originalState) {
                     ListState.Ok -> ListState.Empty
-                    ListState.Error -> ListState.Error
+                    else -> originalState
                 }
             } else {
-                when (it) {
+                when (originalState) {
                     ListState.Empty -> ListState.Ok
-                    ListState.Loading -> ListState.Loading
-                    ListState.Ok -> ListState.Ok
                     ListState.Error -> ListState.Ok
+                    else -> originalState
                 }
             }
         }
     }
 }
-
-

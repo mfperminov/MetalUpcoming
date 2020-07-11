@@ -38,7 +38,6 @@ import splitties.views.gravityBottom
 import splitties.views.gravityEnd
 import xyz.mperminov.parser.Link
 
-
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
@@ -142,7 +141,6 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Loading })
             })
         }
-
         setContentView(rootView)
     }
 

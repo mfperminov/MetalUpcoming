@@ -4,6 +4,10 @@ import android.os.Parcel
 import android.os.Parcelable
 import xyz.mperminov.parser.Link
 import java.net.URI
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AlbumInfo(
     val band: Band,
@@ -102,6 +106,21 @@ class Album(
         parcel.readString()!!
     )
 
+    fun parsedDate(): Date =
+        try {
+            requireNotNull(
+                DATE_FORMAT.dateTimeFormatter.parse(
+                    date.replace(
+                        DATE_FORMAT.numericSuffixesRegex,
+                        ""
+                    )
+                )
+            )
+        } catch (e: ParseException) {
+            DATE_FORMAT.EPOCH_DATE
+        }
+
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(title)
         parcel.writeSerializable(link.uri)
@@ -111,6 +130,12 @@ class Album(
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    object DATE_FORMAT {
+        internal val dateTimeFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
+        internal val numericSuffixesRegex = Regex("(?<=\\d)(st|nd|rd|th)")
+        val EPOCH_DATE = Date(0)
     }
 
     companion object CREATOR : Parcelable.Creator<Album> {
