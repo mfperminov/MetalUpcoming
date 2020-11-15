@@ -9,7 +9,7 @@ object Versions {
     val targetSdk = 30
     val compileSdk = 30
     val versionCode = 2
-    val versionName = "1.0.1"
+    val versionName = "1.0.2"
     val androidGradlePlugin = "4.2.0-alpha16"
     val splitties = "3.0.0-alpha06"
     val lycheeVersion = "0.0.12"
