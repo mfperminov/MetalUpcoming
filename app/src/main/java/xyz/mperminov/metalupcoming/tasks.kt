@@ -15,25 +15,25 @@ import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.Callable
 
-const val BASE_URL = "https://www.metal-archives.com/release/ajax-upcoming" +
+private const val BASE_URL = "https://www.metal-archives.com/release/ajax-upcoming" +
     "/json/1?sEcho=0&iDisplayStart=%d&iDisplayLength=%d"
 
 class FetchAlbumsCount(
     private val networkClient: OkHttpClient,
     private val url: String = BASE_URL
 ) :
-    Callable<Int> {
-    override fun call(): Int {
+    Callable<Pair<Int, JSONArray>> {
+    override fun call(): Pair<Int, JSONArray> {
         val json = networkClient.prepareCall(0, 100, url)
             .execute()
             .unwrap()
             .string()
         return try {
             val obj = JSONObject(json)
-            return obj.getInt("iTotalRecords")
+            obj.getInt("iTotalRecords") to obj.getJSONArray("aaData")
         } catch (e: Exception) {
             Log.e("FetchAlbumsTask", "${e.message}")
-            0
+            throw e
         }
     }
 }
