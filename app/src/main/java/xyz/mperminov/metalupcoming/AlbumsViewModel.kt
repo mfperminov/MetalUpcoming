@@ -17,6 +17,7 @@ import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -71,14 +72,17 @@ class AlbumsViewModel(
             try {
                 val fetchingAlbums = CompletableFuture
                     .supplyAsync { FetchAlbumsCount(okHttpClient.value).call() }
-                    .thenApplyAsync { count ->
-                        val futures = mutableListOf<Future<List<AlbumInfo>>>()
-                        for (i in 0..count step 100) {
-                            futures.add(
-                                albumPageFetchFuture(i)
-                            )
+                    .thenApplyAsync { fetchAlbumsCountResult ->
+                        val count = fetchAlbumsCountResult.first
+                        val firstHundred = fetchAlbumsCountResult.second
+                        val futures = mutableListOf<CompletableFuture<List<AlbumInfo>>>().apply {
+                            for (i in 100..count step 100) {
+                                add(albumPageFetchFuture(i))
+                            }
                         }
-                        val unsortedList = futures.map { it.get() }.flatten()
+                        val unsortedList =
+                            CopyOnWriteArrayList<AlbumInfo>(MapJsonToAlbumInfoList(firstHundred).call())
+                        unsortedList.addAll(futures.map { f -> f.get() }.flatten())
                         if (unsortedList.all { it.album.parsedDate() != Album.DATE_FORMAT.EPOCH_DATE }) {
                             unsortedList.sortedBy { it.album.parsedDate().time }
                         } else {
