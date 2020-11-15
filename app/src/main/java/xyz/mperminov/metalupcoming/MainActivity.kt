@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -99,7 +98,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Ok })
                 clipToPadding = false
                 setPadding(0, 0, 0, 4.dp)
-                backgroundColor = getColorFromTheme(R.attr.listBackground)
+                backgroundColor = getColorFromTheme(R.attr.toolbarColor)
                 layoutManager = LinearLayoutManager(this@MainActivity)
                 adapter = object : RecyclerView.Adapter<AlbumHolder>() {
 
@@ -325,12 +324,6 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                 onClickListener.invoke(albumInfo)
             }
         }
-    }
-
-    private fun getColorFromTheme(id: Int): Int {
-        val typedValue = TypedValue()
-        theme.resolveAttribute(id, typedValue, true)
-        return typedValue.data
     }
 
     private fun openPage(link: Link) {
