@@ -8,7 +8,7 @@ object Versions {
     val minSdk = 24
     val targetSdk = 30
     val compileSdk = 30
-    val versionCode = 2
+    val versionCode = 3
     val versionName = "1.0.2"
     val androidGradlePlugin = "4.2.0-alpha16"
     val splitties = "3.0.0-alpha06"
