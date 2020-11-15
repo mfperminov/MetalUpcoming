@@ -1,8 +1,10 @@
 package xyz.mperminov.metalupcoming
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -58,6 +60,8 @@ fun Context.errorView(reloadClickListener: (View) -> Unit): View {
         })
         addView(button {
             setOnClickListener { v -> reloadClickListener(v) }
+            backgroundTintList =
+                ColorStateList.valueOf(this@errorView.getColorFromTheme(R.attr.dateTextColor))
             setText(R.string.retry)
             setTextAppearance(R.style.StateTextStyle)
         }.apply {
@@ -86,6 +90,13 @@ fun Context.isDarkSystemThemeOn(): Boolean {
     return resources.configuration.uiMode and
         Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
 }
+
+fun Context.getColorFromTheme(id: Int): Int {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(id, typedValue, true)
+    return typedValue.data
+}
+
 
 enum class Theme {
     DARK, LIGHT
