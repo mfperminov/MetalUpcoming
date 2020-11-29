@@ -55,7 +55,7 @@ class FetchAlbumsJsonArray(
     private val networkClient: OkHttpClient,
     private val url: String = BASE_URL,
     val offset: Int,
-    val length: Int = 100
+    private val length: Int = 100
 ) :
     Callable<List<AlbumInfo>> {
     override fun call(): List<AlbumInfo> {
