@@ -1,7 +1,8 @@
 package xyz.mperminov.metalupcoming
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.annotation.WorkerThread
 import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
 import net.aquadc.properties.MutableProperty
@@ -16,23 +17,26 @@ import net.aquadc.properties.persistence.x
 import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
 import java.io.Closeable
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Callable
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.FutureTask
 
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
     private val io: ExecutorService,
     state: ParcelPropertiesMemento?
 ) : PersistableProperties, Closeable {
+
+    private val uiHandler = Handler(Looper.getMainLooper())
     val albums = AlbumInfoState(
-        propertyOf(emptyList(), true),
-        propertyOf(ListState.Empty, true).apply {
+        propertyOf(emptyList(), false),
+        propertyOf(ListState.Empty, false).apply {
             this.addChangeListener { old, new -> Log.d("ListState", "$old -> $new") }
         },
-        propertyOf("", true)
+        propertyOf("", false)
     )
 
     private var loadingAlbumsInfo: Future<*>? = null
@@ -65,57 +69,78 @@ class AlbumsViewModel(
         loadAlbums()
     }
 
-    @WorkerThread
-    fun loadAlbums() {
+    fun loadAlbums(
+        onResult: (partialResult: List<AlbumInfo>) -> Unit = { list ->
+            uiHandler.post {
+                updateResult(
+                    list
+                )
+            }
+        },
+        onFail: (e: Exception) -> Unit = { e ->
+            uiHandler.post {
+                setError(e)
+            }
+        }
+    ) {
+        albums._listState.value = ListState.Loading
         loadingAlbumsInfo = io.submit {
-            albums._listState.value = ListState.Loading
             try {
-                val fetchingAlbums = CompletableFuture
-                    .supplyAsync { FetchAlbumsCount(okHttpClient.value).call() }
-                    .thenApplyAsync { fetchAlbumsCountResult ->
-                        val count = fetchAlbumsCountResult.first
-                        val firstHundred = fetchAlbumsCountResult.second
-                        val futures = mutableListOf<CompletableFuture<List<AlbumInfo>>>().apply {
-                            for (i in 100..count step 100) {
-                                add(albumPageFetchFuture(i))
-                            }
-                        }
-                        val unsortedList =
-                            CopyOnWriteArrayList<AlbumInfo>(MapJsonToAlbumInfoList(firstHundred).call())
-                        unsortedList.addAll(futures.map { f -> f.get() }.flatten())
-                        if (unsortedList.all { it.album.parsedDate() != Album.DATE_FORMAT.EPOCH_DATE }) {
-                            unsortedList.sortedBy { it.album.parsedDate().time }
-                        } else {
-                            unsortedList
+                val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
+                val results = CopyOnWriteArrayList<List<AlbumInfo>>()
+                val tasks = mutableListOf<Runnable>()
+                tasks.add(object : FutureTask<List<AlbumInfo>>(
+                    Callable { mapToAlbumList(firstList) }
+                ) {
+                    override fun done() {
+                        try {
+                            val value = get()
+                            results.add(value)
+                            onResult(results.toList().flatten().sortedBy { it.album.parsedDate() })
+                        } catch (e: Exception) {
+                            Log.e("AlbumsViewModel", e.javaClass.simpleName + e.localizedMessage)
                         }
                     }
-                albums.items.value = fetchingAlbums.get()
-                albums._listState.value = ListState.Ok
+                })
+                for (i in 100..count step 100) {
+                    val c: Runnable = object : FutureTask<List<AlbumInfo>>(
+                        FetchAlbumsJsonArray(
+                            okHttpClient.value,
+                            offset = i
+                        )
+                    ) {
+                        override fun done() {
+                            try {
+                                val value = get()
+                                results.add(value)
+                                onResult(
+                                    results.toList().flatten().sortedBy { it.album.parsedDate() })
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "AlbumsViewModel",
+                                    e.javaClass.simpleName + e.localizedMessage
+                                )
+                            }
+                        }
+                    }
+                    tasks.add(c)
+                }
+                tasks.forEach { io.submit(it) }
             } catch (e: Exception) {
-                Log.e("AlbumsViewModel", e.message ?: "")
-                albums._listState.value = ListState.Error
+                onFail(e)
             }
         }
     }
 
-    private fun albumPageFetchFuture(offset: Int): CompletableFuture<List<AlbumInfo>> =
-        CompletableFuture
-            .supplyAsync {
-                FetchAlbumsJsonArray(
-                    networkClient = okHttpClient.value,
-                    offset = offset,
-                    length = 100
-                ).call()
-            }
-            .thenApplyAsync { jsonArray ->
-                MapJsonToAlbumInfoList(
-                    jsonArray
-                ).call()
-            }
-            .exceptionally { t: Throwable? ->
-                Log.e("AlbumPageFetch", "Failed for offset=$offset with cause: ${t?.message}")
-                emptyList()
-            }
+    private fun setError(e: Exception) {
+        Log.e("AlbumsViewModel", e.message ?: "")
+        albums._listState.value = ListState.Error
+    }
+
+    private fun updateResult(list: List<AlbumInfo>) {
+        albums.items.value = list
+        albums._listState.value = ListState.Ok
+    }
 
     private companion object {
         val worker = WorkerOnExecutor(Executors.newSingleThreadExecutor())

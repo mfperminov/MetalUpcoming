@@ -4,11 +4,13 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import androidx.core.content.res.ResourcesCompat
 import splitties.views.dsl.core.button
 import splitties.views.dsl.core.imageView
 import splitties.views.dsl.core.matchParent
@@ -20,12 +22,17 @@ fun Context.emptyView(): View {
         layoutParams = LinearLayout.LayoutParams(matchParent, matchParent)
         orientation = LinearLayout.VERTICAL
         addView(imageView {
-            setImageDrawable(resources.getDrawable(R.drawable.ic_empty, theme))
+            setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_empty, theme))
             gravity = Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL
         })
         addView(textView {
             setText(R.string.nothing_found)
-            setTextAppearance(R.style.StateTextStyle)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                setTextAppearance(R.style.StateTextStyle)
+            } else {
+                @Suppress("DEPRECATION")
+                setTextAppearance(this@emptyView, R.style.StateTextStyle)
+            }
             gravity = Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL
         }.apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -43,12 +50,17 @@ fun Context.errorView(reloadClickListener: (View) -> Unit): View {
         layoutParams = LinearLayout.LayoutParams(matchParent, matchParent)
         orientation = LinearLayout.VERTICAL
         addView(imageView {
-            setImageDrawable(resources.getDrawable(R.drawable.ic_error, theme))
+            setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_error, theme))
             gravity = Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL
         })
         addView(textView {
             setText(R.string.check_connection)
-            setTextAppearance(R.style.StateTextStyle)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                setTextAppearance(R.style.StateTextStyle)
+            } else {
+                @Suppress("DEPRECATION")
+                setTextAppearance(this@errorView, R.style.StateTextStyle)
+            }
             gravity = Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL
         }.apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -63,7 +75,12 @@ fun Context.errorView(reloadClickListener: (View) -> Unit): View {
             backgroundTintList =
                 ColorStateList.valueOf(this@errorView.getColorFromTheme(R.attr.dateTextColor))
             setText(R.string.retry)
-            setTextAppearance(R.style.StateTextStyle)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                setTextAppearance(R.style.StateTextStyle)
+            } else {
+                @Suppress("DEPRECATION")
+                setTextAppearance(this@errorView, R.style.StateTextStyle)
+            }
         }.apply {
             layoutParams = LinearLayout.LayoutParams(
                 wrapContent,

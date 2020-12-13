@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -40,7 +41,7 @@ import xyz.mperminov.parser.Link
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
-    private var handler: Handler? = Handler(Looper.getMainLooper())
+    private val handler = Handler(Looper.getMainLooper())
     private val onClick: (AlbumInfo) -> Unit = { info ->
         AlertDialog.Builder(this, R.style.AlertDialogCustom).setItems(
             R.array.MA_destinations
@@ -77,6 +78,9 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         setNavigationIcon(R.drawable.ic_settings_brightness_24px)
                         setNavigationOnClickListener { flipTheme() }
                         addView(SearchView(this@MainActivity).apply {
+                            id = SEARCH_VIEW_ID
+                            imeOptions =
+                                EditorInfo.IME_ACTION_SEARCH or EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
                             queryHint = getString(R.string.search_hint)
                             layoutDirection = View.LAYOUT_DIRECTION_RTL
                             layoutParams = LinearLayout.LayoutParams(matchParent, wrapContent)
@@ -123,7 +127,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
 
                     private val onChange: (List<AlbumInfo>, List<AlbumInfo>, DiffUtil.DiffResult) -> Unit =
                         { _, _, diff ->
-                            this@MainActivity.handler?.post {
+                            this@MainActivity.handler.post {
                                 diff.dispatchUpdatesTo(this)
                             }
                         }
@@ -141,6 +145,12 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             })
         }
         setContentView(rootView)
+        if (savedInstanceState != null) {
+            val searchView = findViewById<SearchView>(SEARCH_VIEW_ID)
+            if (searchView.query.isNotEmpty()) {
+                searchView.isIconified = false
+            }
+        }
     }
 
     private fun handleTheme() {
@@ -180,7 +190,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
     }
 
     override fun onDestroy() {
-        handler?.removeCallbacksAndMessages(null)
+        handler.removeCallbacksAndMessages(null)
         findViewById<RecyclerView>(RECYCLER_VIEW_ID).adapter = null
         super.onDestroy()
     }
@@ -344,6 +354,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         const val ALBUM_ID = 4
         const val TYPE_ID = 5
         const val RECYCLER_VIEW_ID = 8
+        private const val SEARCH_VIEW_ID = 9
         private const val THEME_KEY = "THEME_KEY"
     }
 }

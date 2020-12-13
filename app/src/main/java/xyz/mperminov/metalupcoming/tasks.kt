@@ -55,54 +55,52 @@ class FetchAlbumsJsonArray(
     private val networkClient: OkHttpClient,
     private val url: String = BASE_URL,
     val offset: Int,
-    val length: Int = 100
+    private val length: Int = 100
 ) :
-    Callable<JSONArray> {
-    override fun call(): JSONArray {
+    Callable<List<AlbumInfo>> {
+    override fun call(): List<AlbumInfo> {
         val json = networkClient.prepareCall(offset, length, url)
             .execute()
             .unwrap()
             .string()
         return try {
             val obj = JSONObject(json)
-            return obj.getJSONArray("aaData")
+            mapToAlbumList(obj.getJSONArray("aaData"))
         } catch (e: Exception) {
             Log.e("FetchAlbumsJsonArray", "${e.message}")
-            JSONArray()
+            throw e
         }
     }
 }
 
-class MapJsonToAlbumInfoList(
-    private val jsonAlbumsArray: JSONArray,
-    private val parser: HrefStringParser = HrefStringParser(
+fun mapToAlbumList(
+    jsonAlbumsArray: JSONArray,
+    parser: HrefStringParser = HrefStringParser(
         RegexFactory().regex<String>(),
         RegexFactory().regex<Link>()
     )
-) : Callable<List<AlbumInfo>> {
-    override fun call(): List<AlbumInfo> {
-        return try {
-            val albumInfo = LinkedList<AlbumInfo>()
-            for (i in 0 until jsonAlbumsArray.length()) {
-                val nextArr = jsonAlbumsArray.getJSONArray(i)
-                val band = Band(
-                    parser.hrefText(nextArr.getString(0)),
-                    parser.link(nextArr.getString(0)),
-                    Genre(nextArr.getString(3))
-                )
-                val album = Album(
-                    parser.hrefText(nextArr.getString(1)),
-                    parser.link(nextArr.getString(1)),
-                    AlbumTypeFactory().albumType(nextArr.getString(2)),
-                    nextArr.getString(4)
-                )
-                albumInfo.add(AlbumInfo(band, album))
-            }
-            albumInfo.distinct()
-        } catch (e: Exception) {
-            Log.e("MapJsonToAlbumInfoList", e.message ?: "Unknown")
-            Log.e("MapJsonToAlbumInfoList", jsonAlbumsArray.toString())
-            emptyList()
+): List<AlbumInfo> {
+    return try {
+        val albumInfo = LinkedList<AlbumInfo>()
+        for (i in 0 until jsonAlbumsArray.length()) {
+            val nextArr = jsonAlbumsArray.getJSONArray(i)
+            val band = Band(
+                parser.hrefText(nextArr.getString(0)),
+                parser.link(nextArr.getString(0)),
+                Genre(nextArr.getString(3))
+            )
+            val album = Album(
+                parser.hrefText(nextArr.getString(1)),
+                parser.link(nextArr.getString(1)),
+                AlbumTypeFactory().albumType(nextArr.getString(2)),
+                nextArr.getString(4)
+            )
+            albumInfo.add(AlbumInfo(band, album))
         }
+        albumInfo.distinct()
+    } catch (e: Exception) {
+        Log.e("MapJsonToAlbumInfoList", e.message ?: "Unknown")
+        Log.e("MapJsonToAlbumInfoList", jsonAlbumsArray.toString())
+        throw e
     }
 }
