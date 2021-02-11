@@ -12,11 +12,7 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.SearchView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -36,7 +32,7 @@ import splitties.views.dsl.material.appBarLayout
 import splitties.views.dsl.recyclerview.recyclerView
 import splitties.views.gravityBottom
 import splitties.views.gravityEnd
-import xyz.mperminov.parser.Link
+import java.net.URL
 
 @Suppress("UNCHECKED_CAST")
 class MainActivity : InjectableActivity<AlbumsViewModel>() {
@@ -336,11 +332,11 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
         }
     }
 
-    private fun openPage(link: Link) {
+    private fun openPage(url: URL) {
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse(link.uri.toString())
+                Uri.parse(url.toString())
             )
         )
     }
