@@ -43,7 +43,7 @@ dependencies {
     implementation Deps.lycheeProperties
     implementation Deps.lycheeAndroidBindings
     testImplementation Deps.junit
-    androidTestImplementation Deps.okhttpTesting
+    testImplementation Deps.okhttpTesting
     androidTestImplementation Deps.testRunner
     androidTestImplementation Deps.espressoCore
     debugImplementation Deps.leakCanary
