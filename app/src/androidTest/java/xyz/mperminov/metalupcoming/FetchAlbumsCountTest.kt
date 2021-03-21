@@ -3,7 +3,9 @@ package xyz.mperminov.metalupcoming
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.json.JSONException
 import org.junit.After
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -31,8 +33,8 @@ class FetchAlbumsCountTest {
 
     private val invalidJson = """
         { 
-	"iTotalRecords": rm,
-	"iTotalDisplayRecords": rf,
+	"iTotalRecords": NaN,
+	"iTotalDisplayRecords": NaN,
 	"sEcho": 0,
 	"aaData": [
 			[
@@ -57,16 +59,20 @@ class FetchAlbumsCountTest {
     fun successGettingTotalCountOfAlbums() {
         mockWebServer.enqueue(MockResponse().setBody(validJson))
         val totalCount =
-            FetchAlbumsCount(okHttpClient, url = mockWebServer.url("/").toString()).call()
+            FetchAlbumsCount(okHttpClient, url = mockWebServer.url("/").toString()).call().first
         assertEquals(333, totalCount)
     }
 
     @Test
     fun failGettingTotalCountOfAlbums() {
         mockWebServer.enqueue(MockResponse().setBody(invalidJson))
-        val totalCount =
-            FetchAlbumsCount(okHttpClient, url = mockWebServer.url("/").toString()).call()
-        assertEquals(0, totalCount)
+        try {
+            FetchAlbumsCount(okHttpClient, url = mockWebServer.url("/").toString()).call().first
+            Assert.fail()
+        } catch (e: JSONException) {
+            println(e.localizedMessage)
+        }
+
     }
 
     @After
