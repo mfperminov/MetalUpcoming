@@ -1,7 +1,9 @@
 package xyz.mperminov.parser
 
+import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.net.MalformedURLException
 import java.net.URI
 
 class HrefStringParserTest {
@@ -13,7 +15,8 @@ class HrefStringParserTest {
     private val testStringWithoutLink = "<a href=>Herrschaft</a>"
     private val testStringOnlyAnchor = "<a>Herrschaft</a>"
     private val resultHrefInside = "Herrschaft"
-    private val resultHrefLink = Link(URI("https://www.metal-archives.com/bands/Herrschaft/79364"))
+    private val resultHrefLink =
+        URI("https://www.metal-archives.com/bands/Herrschaft/79364").toURL()
     private val emptyString = ""
     private val randomString = "ferg345gg35g"
 
@@ -103,31 +106,40 @@ class HrefStringParserTest {
 
     @Test
     fun testLinksHref_WithoutLink() {
-        assertTrue(
+        try {
             HrefStringParser(
                 RegexFactory().regex<String>(),
                 RegexFactory().regex<Link>()
-            ).link(testStringWithoutLink) == Link.EMPTY_LINK
-        )
+            ).link(testStringWithoutLink)
+            Assert.fail()
+        } catch (e: MalformedURLException) {
+            // ignored
+        }
     }
 
     @Test
     fun testLinksHref_Empty() {
-        assertTrue(
+        try {
             HrefStringParser(
                 RegexFactory().regex<String>(),
                 RegexFactory().regex<Link>()
-            ).link(emptyString) == Link.EMPTY_LINK
-        )
+            ).link(emptyString)
+            Assert.fail()
+        } catch (e: MalformedURLException) {
+            // ignored
+        }
     }
 
     @Test
     fun testLinksHref_Random() {
-        assertTrue(
+        try {
             HrefStringParser(
                 RegexFactory().regex<String>(),
                 RegexFactory().regex<Link>()
-            ).link(randomString) == Link.EMPTY_LINK
-        )
+            ).link(randomString)
+            Assert.fail()
+        } catch (e: MalformedURLException) {
+            // ignored
+        }
     }
 }

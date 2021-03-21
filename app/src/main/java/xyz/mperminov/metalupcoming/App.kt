@@ -2,6 +2,8 @@ package xyz.mperminov.metalupcoming
 
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import net.aquadc.properties.persistence.memento.PersistableProperties
 import okhttp3.OkHttpClient
@@ -29,6 +31,8 @@ class App : Application() {
             30, TimeUnit.SECONDS, LinkedBlockingQueue()
         )
 
+    private val uiHandler = Handler(Looper.getMainLooper())
+
     override fun onCreate() {
         super.onCreate()
         registerActivityLifecycleCallbacks(object : LifecycleCallbacksInjector() {
@@ -41,6 +45,7 @@ class App : Application() {
                     is MainActivity -> activity.vm = AlbumsViewModel(
                         okHttp,
                         io,
+                        uiHandler,
                         savedInstanceState?.getParcelable("vm")
                     )
                     else -> throw AssertionError()

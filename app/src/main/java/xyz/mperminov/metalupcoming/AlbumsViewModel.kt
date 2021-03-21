@@ -1,7 +1,6 @@
 package xyz.mperminov.metalupcoming
 
 import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
@@ -27,10 +26,10 @@ import java.util.concurrent.FutureTask
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
     private val io: ExecutorService,
+    private val handler: Handler,
     state: ParcelPropertiesMemento?
 ) : PersistableProperties, Closeable {
 
-    private val uiHandler = Handler(Looper.getMainLooper())
     val albums = AlbumInfoState(
         propertyOf(emptyList(), false),
         propertyOf(ListState.Empty, false).apply {
@@ -71,14 +70,14 @@ class AlbumsViewModel(
 
     fun loadAlbums(
         onResult: (partialResult: List<AlbumInfo>) -> Unit = { list ->
-            uiHandler.post {
+            handler.post {
                 updateResult(
                     list
                 )
             }
         },
         onFail: (e: Exception) -> Unit = { e ->
-            uiHandler.post {
+            handler.post {
                 setError(e)
             }
         }
