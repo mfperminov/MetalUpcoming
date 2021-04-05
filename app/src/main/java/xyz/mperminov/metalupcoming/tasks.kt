@@ -14,6 +14,7 @@ import xyz.mperminov.parser.RegexFactory
 import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.Callable
+import java.util.concurrent.FutureTask
 
 private const val BASE_URL = "https://www.metal-archives.com/release/ajax-upcoming" +
     "/json/1?sEcho=0&iDisplayStart=%d&iDisplayLength=%d"
@@ -59,6 +60,7 @@ class FetchAlbumsJsonArray(
 ) :
     Callable<List<AlbumInfo>> {
     override fun call(): List<AlbumInfo> {
+        Log.d("FetchAlbumsJsonArray", "$offset Execute in thread ${Thread.currentThread().name}")
         val json = networkClient.prepareCall(offset, length, url)
             .execute()
             .unwrap()
@@ -70,6 +72,22 @@ class FetchAlbumsJsonArray(
             Log.e("FetchAlbumsJsonArray", "${e.message}")
             throw e
         }
+    }
+}
+
+class FetchAlbumsFutureTask(
+    networkClient: OkHttpClient,
+    offset: Int,
+    private val doneCallback: (List<AlbumInfo>) -> Unit
+) : FutureTask<List<AlbumInfo>>(
+    FetchAlbumsJsonArray(
+        networkClient = networkClient,
+        offset = offset
+    )
+) {
+    override fun done() {
+        super.done()
+        doneCallback(get())
     }
 }
 

@@ -21,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
 
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
@@ -68,65 +67,35 @@ class AlbumsViewModel(
         loadAlbums()
     }
 
-    fun loadAlbums(
-        onResult: (partialResult: List<AlbumInfo>) -> Unit = { list ->
-            handler.post {
-                updateResult(
-                    list
-                )
-            }
-        },
-        onFail: (e: Exception) -> Unit = { e ->
-            handler.post {
-                setError(e)
-            }
-        }
-    ) {
+    fun loadAlbums() {
         albums._listState.value = ListState.Loading
         loadingAlbumsInfo = io.submit {
             try {
                 val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
-                val results = CopyOnWriteArrayList<List<AlbumInfo>>()
-                val tasks = mutableListOf<Runnable>()
-                tasks.add(object : FutureTask<List<AlbumInfo>>(
-                    Callable { mapToAlbumList(firstList) }
-                ) {
-                    override fun done() {
-                        try {
-                            val value = get()
-                            results.add(value)
-                            onResult(results.toList().flatten().sortedBy { it.album.parsedDate() })
-                        } catch (e: Exception) {
-                            Log.e("AlbumsViewModel", e.javaClass.simpleName + e.localizedMessage)
-                        }
-                    }
-                })
-                for (i in 100..count step 100) {
-                    val c: Runnable = object : FutureTask<List<AlbumInfo>>(
-                        FetchAlbumsJsonArray(
-                            okHttpClient.value,
-                            offset = i
-                        )
-                    ) {
-                        override fun done() {
-                            try {
-                                val value = get()
-                                results.add(value)
-                                onResult(
-                                    results.toList().flatten().sortedBy { it.album.parsedDate() })
-                            } catch (e: Exception) {
-                                Log.e(
-                                    "AlbumsViewModel",
-                                    e.javaClass.simpleName + e.localizedMessage
-                                )
+                val firstListMapped = Callable { mapToAlbumList(firstList) }.call()
+                val result = CopyOnWriteArrayList<AlbumInfo>()
+                result.addAll(firstListMapped)
+                handler.post { updateResult(firstListMapped) }
+                try {
+                    val tasks = mutableListOf<Runnable>()
+                    for (i in 100..count step 100) {
+                        tasks.add(
+                            FetchAlbumsFutureTask(
+                                okHttpClient.value,
+                                offset = i
+
+                            ) { offsetList ->
+                                result.addAll(offsetList)
+                                val sorted = result.sortedBy { it.album.parsedDate() }
+                                handler.post { updateResult(sorted) }
                             }
-                        }
+                        )
                     }
-                    tasks.add(c)
+                    tasks.forEach { io.submit(it) }
+                } catch (e: Exception) {
+                    handler.post { setError(e) }
                 }
-                tasks.forEach { io.submit(it) }
             } catch (e: Exception) {
-                onFail(e)
             }
         }
     }
@@ -147,7 +116,10 @@ class AlbumsViewModel(
 }
 
 enum class ListState {
-    Empty, Loading, Ok, Error
+    Empty,
+    Loading,
+    Ok,
+    Error
 }
 
 class AlbumInfoState(

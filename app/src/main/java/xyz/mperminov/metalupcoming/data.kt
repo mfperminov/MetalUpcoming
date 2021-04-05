@@ -5,7 +5,9 @@ import kotlinx.android.parcel.Parcelize
 import java.net.URL
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.Objects
 
 @Parcelize
 class AlbumInfo(
@@ -38,7 +40,7 @@ class Band(
 ) : Parcelable
 
 @Parcelize
-class Album(
+data class Album(
     val title: String,
     val link: URL,
     val type: TYPE,
