@@ -1,5 +1,5 @@
 object Versions {
-    val kotlin = "1.4.20"
+    val kotlin = "1.5.0"
     val okhttp = "4.9.0"
     val junit = "4.12"
     val testRunner = "1.2.0"
