@@ -22,6 +22,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
+//TODO
+//TODO 1. Упростить стейты
+//TODO 2. Изменгить бекграунрд работу в соответствии с докладом
+//TODO 3. Изменить на линеар лейаут
+//TODO 4. Юай тесты
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
     private val io: ExecutorService,
@@ -31,13 +36,11 @@ class AlbumsViewModel(
 
     val albums = AlbumInfoState(
         propertyOf(emptyList(), false),
-        propertyOf(ListState.Empty, false).apply {
-            this.addChangeListener { old, new -> Log.d("ListState", "$old -> $new") }
-        },
+        propertyOf(ListState.Empty, false),
         propertyOf("", false)
     )
 
-    private var loadingAlbumsInfo: Future<*>? = null
+    private val futures = mutableListOf<Future<*>>()
 
     val diffData = albums.filtered.calculateDiffOn(worker) { old, new ->
         DiffUtil.calculateDiff(object : DiffUtil.Callback() {
@@ -59,7 +62,7 @@ class AlbumsViewModel(
     }
 
     override fun close() {
-        loadingAlbumsInfo?.cancel(true)
+        futures.forEach { it.cancel(true) }
     }
 
     init {
@@ -69,35 +72,37 @@ class AlbumsViewModel(
 
     fun loadAlbums() {
         albums._listState.value = ListState.Loading
-        loadingAlbumsInfo = io.submit {
+        io.submit {
             try {
                 val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
                 val firstListMapped = Callable { mapToAlbumList(firstList) }.call()
                 val result = CopyOnWriteArrayList<AlbumInfo>()
                 result.addAll(firstListMapped)
-                handler.post { updateResult(firstListMapped) }
-                try {
-                    val tasks = mutableListOf<Runnable>()
-                    for (i in 100..count step 100) {
-                        tasks.add(
-                            FetchAlbumsFutureTask(
-                                okHttpClient.value,
-                                offset = i
+                handler.post { updateFirstResult(result, count) }
 
-                            ) { offsetList ->
-                                result.addAll(offsetList)
-                                val sorted = result.sortedBy { it.album.parsedDate() }
-                                handler.post { updateResult(sorted) }
-                            }
-                        )
-                    }
-                    tasks.forEach { io.submit(it) }
-                } catch (e: Exception) {
-                    handler.post { setError(e) }
-                }
             } catch (e: Exception) {
+                Log.e("Error", e.message.orEmpty())
+                handler.post { setError(e) }
             }
+        }.also { futures.add(it) }
+    }
+
+    private fun updateFirstResult(result: CopyOnWriteArrayList<AlbumInfo>, count: Int) {
+        val tasks = mutableListOf<Runnable>()
+        for (i in 100..count step 100) {
+            tasks.add(
+                FetchAlbumsFutureTask(
+                    okHttpClient.value,
+                    offset = i
+
+                ) { offsetList ->
+                    result.addAll(offsetList)
+                    val sorted = result.sortedBy { it.album.parsedDate() }
+                    handler.post { updateResult(sorted) }
+                }
+            )
         }
+        tasks.forEach { task -> io.submit(task).also { future -> futures.add(future) } }
     }
 
     private fun setError(e: Exception) {
@@ -107,7 +112,7 @@ class AlbumsViewModel(
 
     private fun updateResult(list: List<AlbumInfo>) {
         albums.items.value = list
-        albums._listState.value = ListState.Ok
+        albums._listState.value = ListState.Data
     }
 
     private companion object {
@@ -118,8 +123,8 @@ class AlbumsViewModel(
 enum class ListState {
     Empty,
     Loading,
-    Ok,
-    Error
+    Data,
+    Error,
 }
 
 class AlbumInfoState(
@@ -139,13 +144,13 @@ class AlbumInfoState(
         _listState.map { originalState ->
             if (filtered.isEmpty()) {
                 when (originalState) {
-                    ListState.Ok -> ListState.Empty
+                    ListState.Data -> ListState.Empty
                     else -> originalState
                 }
             } else {
                 when (originalState) {
-                    ListState.Empty -> ListState.Ok
-                    ListState.Error -> ListState.Ok
+                    ListState.Empty -> ListState.Data
+                    ListState.Error -> ListState.Data
                     else -> originalState
                 }
             }

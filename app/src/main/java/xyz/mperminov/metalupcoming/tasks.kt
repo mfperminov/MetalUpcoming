@@ -60,7 +60,6 @@ class FetchAlbumsJsonArray(
 ) :
     Callable<List<AlbumInfo>> {
     override fun call(): List<AlbumInfo> {
-        Log.d("FetchAlbumsJsonArray", "$offset Execute in thread ${Thread.currentThread().name}")
         val json = networkClient.prepareCall(offset, length, url)
             .execute()
             .unwrap()
@@ -118,7 +117,6 @@ fun mapToAlbumList(
         albumInfo.distinct()
     } catch (e: Exception) {
         Log.e("MapJsonToAlbumInfoList", e.message ?: "Unknown")
-        Log.e("MapJsonToAlbumInfoList", jsonAlbumsArray.toString())
         throw e
     }
 }

@@ -4,7 +4,6 @@ import android.app.Application
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import net.aquadc.properties.persistence.memento.PersistableProperties
 import okhttp3.OkHttpClient
 import java.io.Closeable
@@ -18,7 +17,6 @@ class App : Application() {
         OkHttpClient.Builder()
             .callTimeout(10, TimeUnit.SECONDS)
             .addInterceptor {
-                Log.d("Request", it.request().url.toString())
                 it.proceed(it.request())
             }
             .build()

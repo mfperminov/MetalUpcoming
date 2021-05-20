@@ -95,7 +95,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     })
                 })
             addView(recyclerView(id = RECYCLER_VIEW_ID) {
-                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Ok })
+                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Data })
                 clipToPadding = false
                 setPadding(0, 0, 0, 4.dp)
                 backgroundColor = getColorFromTheme(R.attr.toolbarColor)
