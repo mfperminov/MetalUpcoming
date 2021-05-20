@@ -30,7 +30,8 @@ class AlbumInfo(
     override fun hashCode(): Int = Objects.hash(this.band.name, this.album.title)
 }
 
-inline class Genre(val value: String)
+@JvmInline
+value class Genre(val value: String)
 
 @Parcelize
 class Band(

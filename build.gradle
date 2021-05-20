@@ -2,7 +2,7 @@ buildscript {
     ext.kotlin_version = Versions.kotlin
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath Deps.androidGradlePlugin
@@ -14,7 +14,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url 'https://dl.bintray.com/miha-x64/maven' }
     }
 }
