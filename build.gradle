@@ -8,8 +8,6 @@ buildscript {
         classpath Deps.androidGradlePlugin
         classpath Deps.kotlinGradlePlugin
         classpath Deps.kotlinAndroidExtensions
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-      classpath 'com.android.tools.build:gradle:7.0.0-alpha15'
     }
 }
 
