@@ -32,6 +32,7 @@ import splitties.views.dsl.material.appBarLayout
 import splitties.views.dsl.recyclerview.recyclerView
 import splitties.views.gravityBottom
 import splitties.views.gravityEnd
+import xyz.mperminov.metalupcoming.ViewListState.*
 import java.net.URL
 
 @Suppress("UNCHECKED_CAST")
@@ -82,12 +83,12 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                             layoutParams = LinearLayout.LayoutParams(matchParent, wrapContent)
                             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                                 override fun onQueryTextSubmit(query: String?): Boolean {
-                                    query?.let { vm.albums.searchRequest.value = it }
+                                    query?.let { vm.searchRequest.value = it }
                                     return true
                                 }
 
                                 override fun onQueryTextChange(newText: String?): Boolean {
-                                    newText?.let { vm.albums.searchRequest.value = it }
+                                    newText?.let { vm.searchRequest.value = it }
                                     return true
                                 }
                             })
@@ -95,7 +96,7 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     })
                 })
             addView(recyclerView(id = RECYCLER_VIEW_ID) {
-                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Data })
+                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Data })
                 clipToPadding = false
                 setPadding(0, 0, 0, 4.dp)
                 backgroundColor = getColorFromTheme(R.attr.toolbarColor)
@@ -131,13 +132,13 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
             }
             )
             addView(this@MainActivity.emptyView().apply {
-                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Empty })
+                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Empty })
             })
             addView(this@MainActivity.errorView { vm.loadAlbums() }.apply {
-                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Error })
+                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Error })
             })
             addView(this@MainActivity.progressView().apply {
-                bindVisibilitySoftlyTo(vm.albums.listState.map { it == ListState.Loading })
+                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Loading })
             })
         }
         setContentView(rootView)
