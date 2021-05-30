@@ -14,8 +14,10 @@ buildscript {
 allprojects {
     repositories {
         google()
+        jcenter()
+        maven{ url "https://dl.bintray.com/louiscad/splitties-dev"}
         mavenCentral()
-        maven { url 'https://dl.bintray.com/miha-x64/maven' }
+        maven { url "https://jitpack.io" }
     }
 }
 

@@ -10,10 +10,11 @@ object Versions {
     val compileSdk = 30
     val versionCode = 4
     val versionName = "1.0.3"
-    val androidGradlePlugin = "7.0.0-alpha15"
+    val androidGradlePlugin = "7.1.0-alpha01"
     val splitties = "3.0.0-beta01"
-    val lycheeVersion = "0.0.12"
+    val lycheeVersion = "0.0.17"
     val cardViewVersion = "1.0.0"
+    val kotlinMppCollectionsVersion = "1.0-alpha05"
 }
 
 object Deps {
@@ -34,6 +35,8 @@ object Deps {
     val cardView = "androidx.cardview:cardview:${Versions.cardViewVersion}"
     val splittiesRecyclerView =
         "com.louiscad.splitties:splitties-views-dsl-recyclerview:${Versions.splitties}"
-    val lycheeProperties = "net.aquadc.properties:properties:${Versions.lycheeVersion}"
-    val lycheeAndroidBindings = "net.aquadc.properties:android-bindings:${Versions.lycheeVersion}"
+    val lycheeProperties = "su.lychee:properties:${Versions.lycheeVersion}"
+    val lycheeAndroidBindings = "su.lychee:android-bindings:${Versions.lycheeVersion}"
+    val kotlinMPPCollections =
+        "com.github.Miha-x64.Kotlin-MPP_Collection_utils:Collection-utils-jvm:${Versions.kotlinMppCollectionsVersion}"
 }
