@@ -36,6 +36,4 @@ object Deps {
         "com.louiscad.splitties:splitties-views-dsl-recyclerview:${Versions.splitties}"
     val lycheeProperties = "su.lychee:properties:${Versions.lycheeVersion}"
     val lycheeAndroidBindings = "su.lychee:android-bindings:${Versions.lycheeVersion}"
-    val kotlinMPPCollections =
-        "com.github.Miha-x64.Kotlin-MPP_Collection_utils:Collection-utils-jvm:${Versions.kotlinMppCollectionsVersion}"
 }

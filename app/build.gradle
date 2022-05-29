@@ -44,7 +44,6 @@ dependencies {
     implementation Deps.okhttp
     implementation Deps.lycheeProperties
     implementation Deps.lycheeAndroidBindings
-    implementation Deps.kotlinMPPCollections
     testImplementation Deps.junit
     androidTestImplementation Deps.okhttpTesting
     androidTestImplementation Deps.testRunner
