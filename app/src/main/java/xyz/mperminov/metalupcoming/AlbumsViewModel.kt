@@ -22,7 +22,7 @@ import xyz.mperminov.metalupcoming.ViewListState.Empty
 import xyz.mperminov.metalupcoming.ViewListState.Error
 import java.io.Closeable
 import java.util.concurrent.Callable
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -77,13 +77,18 @@ class AlbumsViewModel(
     fun loadAlbums() {
         albums.albumInfoState._listState.value = ViewListState.Loading
         io.submit {
+            val result = ConcurrentSkipListSet<AlbumInfo> { first, second ->
+                compareValuesBy(
+                    first,
+                    second
+                ) { it.album.parsedDate }
+            }
             try {
                 val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
                 val firstListMapped = Callable { mapToAlbumList(firstList) }.call()
-                val result = CopyOnWriteArrayList<AlbumInfo>()
                 result.addAll(firstListMapped)
-                handler.post { updateFirstResult(result, count) }
-
+                handler.post { updateResult(result.toList()) }
+                updateFirstResult(result, count)
             } catch (e: Exception) {
                 Log.e("Error", e.message.orEmpty())
                 handler.post { setError(e) }
@@ -91,7 +96,7 @@ class AlbumsViewModel(
         }.also { futures.add(it) }
     }
 
-    private fun updateFirstResult(result: CopyOnWriteArrayList<AlbumInfo>, count: Int) {
+    private fun updateFirstResult(result: ConcurrentSkipListSet<AlbumInfo>, count: Int) {
         val tasks = mutableListOf<Runnable>()
         for (i in FIRST_OFFSET..count step ALBUMS_IN_REQUEST_COUNT) {
             tasks.add(
@@ -100,8 +105,8 @@ class AlbumsViewModel(
                     offset = i
                 ) { offsetList ->
                     result.addAll(offsetList)
-                    val sorted = result.sortedBy { it.album.parsedDate() }
-                    handler.post { updateResult(sorted) }
+                    val list = result.toList()
+                    handler.post { updateResult(list) }
                 }
             )
         }

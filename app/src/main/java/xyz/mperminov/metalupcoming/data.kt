@@ -1,7 +1,7 @@
 package xyz.mperminov.metalupcoming
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.net.URL
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -48,19 +48,16 @@ data class Album(
     val date: String
 ) : Parcelable {
 
-    fun parsedDate(): Date =
-        try {
-            requireNotNull(
-                dateTimeFormatter.parse(
-                    date.replace(
-                        numericSuffixesRegex,
-                        ""
-                    )
-                )
+    val parsedDate: Date = try {
+        dateTimeFormatter.parse(
+            date.replace(
+                numericSuffixesRegex,
+                ""
             )
-        } catch (e: ParseException) {
-            EPOCH_DATE
-        }
+        ) ?: EPOCH_DATE
+    } catch (e: ParseException) {
+        EPOCH_DATE
+    }
 
     companion object DATE_FORMAT {
         internal val dateTimeFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)

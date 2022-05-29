@@ -1,5 +1,5 @@
 object Versions {
-    val kotlin = "1.5.0"
+    val kotlin = "1.6.0"
     val okhttp = "4.9.0"
     val junit = "4.12"
     val testRunner = "1.2.0"
@@ -10,7 +10,7 @@ object Versions {
     val compileSdk = 30
     val versionCode = 4
     val versionName = "1.0.3"
-    val androidGradlePlugin = "7.1.0-alpha01"
+    val androidGradlePlugin = "7.4.0-alpha02"
     val splitties = "3.0.0-beta01"
     val lycheeVersion = "0.0.17"
     val cardViewVersion = "1.0.0"
@@ -27,8 +27,7 @@ object Deps {
     val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espressoCore}"
     val leakCanary = "com.squareup.leakcanary:leakcanary-android:${Versions.leakCanary}"
     val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
-    val kotlinAndroidExtensions =
-        "org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}"
+    val kotlinParcelize = "kotlin-parcelize"
     val splittiesViewDSL = "com.louiscad.splitties:splitties-views-dsl:${Versions.splitties}"
     val splittiesViewDSLMaterial =
         "com.louiscad.splitties:splitties-views-dsl-material:${Versions.splitties}"
