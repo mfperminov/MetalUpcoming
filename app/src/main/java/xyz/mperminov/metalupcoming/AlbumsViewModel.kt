@@ -1,47 +1,52 @@
 package xyz.mperminov.metalupcoming
 
 import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
 import net.aquadc.properties.MutableProperty
+import net.aquadc.properties.Property
 import net.aquadc.properties.diff.calculateDiffOn
 import net.aquadc.properties.executor.WorkerOnExecutor
 import net.aquadc.properties.flatMap
 import net.aquadc.properties.map
+import net.aquadc.properties.mapWith
 import net.aquadc.properties.persistence.PropertyIo
 import net.aquadc.properties.persistence.memento.PersistableProperties
 import net.aquadc.properties.persistence.memento.restoreTo
 import net.aquadc.properties.persistence.x
 import net.aquadc.properties.propertyOf
 import okhttp3.OkHttpClient
+import xyz.mperminov.metalupcoming.ViewListState.Data
+import xyz.mperminov.metalupcoming.ViewListState.Empty
+import xyz.mperminov.metalupcoming.ViewListState.Error
 import java.io.Closeable
 import java.util.concurrent.Callable
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
 
+//TODO
+//TODO 2. Изменгить бекграунрд работу в соответствии с докладом
+//TODO 3. Изменить на линеар лейаут
+//TODO 4. Юай тесты
 class AlbumsViewModel(
     private val okHttpClient: Lazy<OkHttpClient>,
     private val io: ExecutorService,
+    private val handler: Handler,
     state: ParcelPropertiesMemento?
 ) : PersistableProperties, Closeable {
 
-    private val uiHandler = Handler(Looper.getMainLooper())
-    val albums = AlbumInfoState(
-        propertyOf(emptyList(), false),
-        propertyOf(ListState.Empty, false).apply {
-            this.addChangeListener { old, new -> Log.d("ListState", "$old -> $new") }
-        },
-        propertyOf("", false)
+    val searchRequest = propertyOf("")
+
+    val albums = ViewState(
+        AlbumInfoState(propertyOf(emptyList()), propertyOf(Empty)), searchRequest
     )
 
-    private var loadingAlbumsInfo: Future<*>? = null
+    private val futures = mutableListOf<Future<*>>()
 
-    val diffData = albums.filtered.calculateDiffOn(worker) { old, new ->
+    val diffData = albums.items.calculateDiffOn(worker) { old, new ->
         DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize(): Int = old.size
             override fun getNewListSize(): Int = new.size
@@ -57,11 +62,11 @@ class AlbumsViewModel(
     }
 
     override fun saveOrRestore(io: PropertyIo) {
-        io x albums.searchRequest
+        io x searchRequest
     }
 
     override fun close() {
-        loadingAlbumsInfo?.cancel(true)
+        futures.forEach { it.cancel(true) }
     }
 
     init {
@@ -69,115 +74,91 @@ class AlbumsViewModel(
         loadAlbums()
     }
 
-    fun loadAlbums(
-        onResult: (partialResult: List<AlbumInfo>) -> Unit = { list ->
-            uiHandler.post {
-                updateResult(
-                    list
-                )
+    fun loadAlbums() {
+        albums.albumInfoState._listState.value = ViewListState.Loading
+        io.submit {
+            val result = ConcurrentSkipListSet<AlbumInfo> { first, second ->
+                compareValuesBy(
+                    first,
+                    second
+                ) { it.album.parsedDate }
             }
-        },
-        onFail: (e: Exception) -> Unit = { e ->
-            uiHandler.post {
-                setError(e)
-            }
-        }
-    ) {
-        albums._listState.value = ListState.Loading
-        loadingAlbumsInfo = io.submit {
             try {
                 val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
-                val results = CopyOnWriteArrayList<List<AlbumInfo>>()
-                val tasks = mutableListOf<Runnable>()
-                tasks.add(object : FutureTask<List<AlbumInfo>>(
-                    Callable { mapToAlbumList(firstList) }
-                ) {
-                    override fun done() {
-                        try {
-                            val value = get()
-                            results.add(value)
-                            onResult(results.toList().flatten().sortedBy { it.album.parsedDate() })
-                        } catch (e: Exception) {
-                            Log.e("AlbumsViewModel", e.javaClass.simpleName + e.localizedMessage)
-                        }
-                    }
-                })
-                for (i in 100..count step 100) {
-                    val c: Runnable = object : FutureTask<List<AlbumInfo>>(
-                        FetchAlbumsJsonArray(
-                            okHttpClient.value,
-                            offset = i
-                        )
-                    ) {
-                        override fun done() {
-                            try {
-                                val value = get()
-                                results.add(value)
-                                onResult(
-                                    results.toList().flatten().sortedBy { it.album.parsedDate() })
-                            } catch (e: Exception) {
-                                Log.e(
-                                    "AlbumsViewModel",
-                                    e.javaClass.simpleName + e.localizedMessage
-                                )
-                            }
-                        }
-                    }
-                    tasks.add(c)
-                }
-                tasks.forEach { io.submit(it) }
+                val firstListMapped = Callable { mapToAlbumList(firstList) }.call()
+                result.addAll(firstListMapped)
+                handler.post { updateResult(result.toList()) }
+                updateFirstResult(result, count)
             } catch (e: Exception) {
-                onFail(e)
+                Log.e("Error", e.message.orEmpty())
+                handler.post { setError(e) }
             }
+        }.also { futures.add(it) }
+    }
+
+    private fun updateFirstResult(result: ConcurrentSkipListSet<AlbumInfo>, count: Int) {
+        val tasks = mutableListOf<Runnable>()
+        for (i in FIRST_OFFSET..count step ALBUMS_IN_REQUEST_COUNT) {
+            tasks.add(
+                FetchAlbumsFutureTask(
+                    okHttpClient.value,
+                    offset = i
+                ) { offsetList ->
+                    result.addAll(offsetList)
+                    val list = result.toList()
+                    handler.post { updateResult(list) }
+                }
+            )
         }
+        tasks.forEach { task -> io.submit(task).also { future -> futures.add(future) } }
     }
 
     private fun setError(e: Exception) {
         Log.e("AlbumsViewModel", e.message ?: "")
-        albums._listState.value = ListState.Error
+        albums.albumInfoState._listState.value = Error
     }
 
     private fun updateResult(list: List<AlbumInfo>) {
-        albums.items.value = list
-        albums._listState.value = ListState.Ok
+        albums.albumInfoState.items.value = list
+        albums.albumInfoState._listState.value = Data
     }
 
     private companion object {
         val worker = WorkerOnExecutor(Executors.newSingleThreadExecutor())
+        const val ALBUMS_IN_REQUEST_COUNT = 100
+        const val FIRST_OFFSET = 100
     }
 }
 
-enum class ListState {
-    Empty, Loading, Ok, Error
+enum class ViewListState {
+    Empty,
+    Loading,
+    Data,
+    Error,
+}
+
+class ViewState(val albumInfoState: AlbumInfoState, private val searchRequest: Property<String>) {
+
+    val items: Property<List<AlbumInfo>> = albumInfoState.items.flatMap { list ->
+        searchRequest.map { s ->
+            val filteredList = list.filter { it.matches(s) }
+            filteredList
+        }
+    }
+    val viewListState: Property<ViewListState> =
+        items.mapWith(albumInfoState._listState) { filteredList, innerState ->
+            if (filteredList.isEmpty()) {
+                when (innerState) {
+                    Data -> Empty
+                    else -> innerState
+                }
+            } else {
+                innerState
+            }
+        }
 }
 
 class AlbumInfoState(
     val items: MutableProperty<List<AlbumInfo>>,
-    val _listState: MutableProperty<ListState>,
-    val searchRequest: MutableProperty<String>
-) {
-    val filtered =
-        items.flatMap { list ->
-            searchRequest.map { s ->
-                val filteredList = list.filter { it.matches(s) }
-                filteredList
-            }
-        }
-
-    val listState = filtered.flatMap { filtered: List<AlbumInfo> ->
-        _listState.map { originalState ->
-            if (filtered.isEmpty()) {
-                when (originalState) {
-                    ListState.Ok -> ListState.Empty
-                    else -> originalState
-                }
-            } else {
-                when (originalState) {
-                    ListState.Empty -> ListState.Ok
-                    ListState.Error -> ListState.Ok
-                    else -> originalState
-                }
-            }
-        }
-    }
-}
+    val _listState: MutableProperty<ViewListState>
+)

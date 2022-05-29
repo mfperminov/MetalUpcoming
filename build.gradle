@@ -2,14 +2,11 @@ buildscript {
     ext.kotlin_version = Versions.kotlin
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath Deps.androidGradlePlugin
         classpath Deps.kotlinGradlePlugin
-        classpath Deps.kotlinAndroidExtensions
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-      classpath 'com.android.tools.build:gradle:7.0.0-alpha02'
     }
 }
 
@@ -17,7 +14,9 @@ allprojects {
     repositories {
         google()
         jcenter()
-        maven { url 'https://dl.bintray.com/miha-x64/maven' }
+        maven{ url "https://dl.bintray.com/louiscad/splitties-dev"}
+        mavenCentral()
+        maven { url "https://jitpack.io" }
     }
 }
 

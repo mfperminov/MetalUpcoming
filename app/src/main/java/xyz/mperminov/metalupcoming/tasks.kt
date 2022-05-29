@@ -14,6 +14,7 @@ import xyz.mperminov.parser.RegexFactory
 import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.Callable
+import java.util.concurrent.FutureTask
 
 private const val BASE_URL = "https://www.metal-archives.com/release/ajax-upcoming" +
     "/json/1?sEcho=0&iDisplayStart=%d&iDisplayLength=%d"
@@ -73,6 +74,22 @@ class FetchAlbumsJsonArray(
     }
 }
 
+class FetchAlbumsFutureTask(
+    networkClient: OkHttpClient,
+    offset: Int,
+    private val doneCallback: (List<AlbumInfo>) -> Unit
+) : FutureTask<List<AlbumInfo>>(
+    FetchAlbumsJsonArray(
+        networkClient = networkClient,
+        offset = offset
+    )
+) {
+    override fun done() {
+        super.done()
+        doneCallback(get())
+    }
+}
+
 fun mapToAlbumList(
     jsonAlbumsArray: JSONArray,
     parser: HrefStringParser = HrefStringParser(
@@ -100,7 +117,6 @@ fun mapToAlbumList(
         albumInfo.distinct()
     } catch (e: Exception) {
         Log.e("MapJsonToAlbumInfoList", e.message ?: "Unknown")
-        Log.e("MapJsonToAlbumInfoList", jsonAlbumsArray.toString())
         throw e
     }
 }

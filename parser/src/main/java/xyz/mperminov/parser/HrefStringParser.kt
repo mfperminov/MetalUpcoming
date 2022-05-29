@@ -1,6 +1,6 @@
 package xyz.mperminov.parser
 
-import java.net.URI
+import java.net.URL
 
 class HrefStringParser(
     private val hrefTextRegex: Regex,
@@ -12,13 +12,9 @@ class HrefStringParser(
         return results?.groupValues?.get(1) ?: ""
     }
 
-    fun link(hrefRawString: String): Link {
+    fun link(hrefRawString: String): URL {
         val results = hrefLinkRegex.find(hrefRawString)
         val text = results?.groupValues?.get(1)?.trim('"') ?: ""
-        return if (text.isNotEmpty()) {
-            Link(URI(text))
-        } else {
-            Link.EMPTY_LINK
-        }
+        return URL(text)
     }
 }

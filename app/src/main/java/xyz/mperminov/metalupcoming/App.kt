@@ -2,7 +2,8 @@ package xyz.mperminov.metalupcoming
 
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import net.aquadc.properties.persistence.memento.PersistableProperties
 import okhttp3.OkHttpClient
 import java.io.Closeable
@@ -16,7 +17,6 @@ class App : Application() {
         OkHttpClient.Builder()
             .callTimeout(10, TimeUnit.SECONDS)
             .addInterceptor {
-                Log.d("Request", it.request().url.toString())
                 it.proceed(it.request())
             }
             .build()
@@ -28,6 +28,8 @@ class App : Application() {
             Runtime.getRuntime().availableProcessors() * 2,
             30, TimeUnit.SECONDS, LinkedBlockingQueue()
         )
+
+    private val uiHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -41,6 +43,7 @@ class App : Application() {
                     is MainActivity -> activity.vm = AlbumsViewModel(
                         okHttp,
                         io,
+                        uiHandler,
                         savedInstanceState?.getParcelable("vm")
                     )
                     else -> throw AssertionError()

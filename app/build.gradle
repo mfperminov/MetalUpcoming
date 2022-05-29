@@ -1,6 +1,8 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id('com.android.application')
+    id('kotlin-android')
+    id('kotlin-parcelize')
+}
 
 android {
     compileSdkVersion Versions.compileSdk
@@ -47,15 +49,8 @@ dependencies {
     androidTestImplementation Deps.testRunner
     androidTestImplementation Deps.espressoCore
     debugImplementation Deps.leakCanary
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = '1.8'
-        freeCompilerArgs = ['-XXLanguage:+InlineClasses']
-    }
-}
 repositories {
     mavenCentral()
 }
