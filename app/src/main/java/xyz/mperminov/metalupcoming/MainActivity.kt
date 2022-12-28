@@ -18,6 +18,7 @@ import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
@@ -96,22 +97,31 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                     })
                 })
             addView(recyclerView(id = RECYCLER_VIEW_ID) {
-                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Data })
+                bindVisibilitySoftlyTo(vm.state.map { it is Data })
                 clipToPadding = false
                 setPadding(0, 0, 0, 4.dp)
                 backgroundColor = getColorFromTheme(R.attr.toolbarColor)
                 layoutManager = LinearLayoutManager(this@MainActivity)
-                adapter = object : RecyclerView.Adapter<AlbumHolder>() {
+                adapter = object : ListAdapter<AlbumInfo, AlbumHolder>(
+                    object : DiffUtil.ItemCallback<AlbumInfo>() {
+                        override fun areItemsTheSame(oldItem: AlbumInfo, newItem: AlbumInfo): Boolean =
+                            oldItem == newItem
+                        override fun areContentsTheSame(oldItem: AlbumInfo, newItem: AlbumInfo): Boolean =
+                            oldItem == newItem
+
+                    }
+                ) {
+                    init {
+                        submitList(vm.diffData.value.list)
+                    }
 
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumHolder {
                         val cardView = itemView()
                         return AlbumHolder(cardView, onClick)
                     }
 
-                    override fun getItemCount(): Int = vm.diffData.value.size
-
                     override fun onBindViewHolder(holder: AlbumHolder, position: Int) {
-                        holder.bind(vm.diffData.value[position])
+                        holder.bind(currentList[position])
                     }
 
                     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -122,23 +132,21 @@ class MainActivity : InjectableActivity<AlbumsViewModel>() {
                         vm.diffData.removeChangeListener(onChange)
                     }
 
-                    private val onChange: (List<AlbumInfo>, List<AlbumInfo>, DiffUtil.DiffResult) -> Unit =
-                        { _, _, diff ->
-                            this@MainActivity.handler.post {
-                                diff.dispatchUpdatesTo(this)
-                            }
+                    private val onChange: (ViewListState, ViewListState) -> Unit =
+                        { _, state ->
+                            submitList(state.list)
                         }
                 }
             }
             )
             addView(this@MainActivity.emptyView().apply {
-                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Empty })
+                bindVisibilitySoftlyTo(vm.state.map { it == Empty })
             })
             addView(this@MainActivity.errorView { vm.loadAlbums() }.apply {
-                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Error })
+                bindVisibilitySoftlyTo(vm.state.map { it is Error })
             })
             addView(this@MainActivity.progressView().apply {
-                bindVisibilitySoftlyTo(vm.albums.viewListState.map { it == Loading })
+                bindVisibilitySoftlyTo(vm.state.map { it == Loading })
             })
         }
         setContentView(rootView)
