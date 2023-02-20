@@ -2,14 +2,8 @@ package xyz.mperminov.metalupcoming
 
 import android.os.Handler
 import android.util.Log
-import androidx.recyclerview.widget.DiffUtil
 import net.aquadc.persistence.android.parcel.ParcelPropertiesMemento
-import net.aquadc.properties.MutableProperty
-import net.aquadc.properties.Property
-import net.aquadc.properties.diff.calculateDiffOn
 import net.aquadc.properties.executor.WorkerOnExecutor
-import net.aquadc.properties.flatMap
-import net.aquadc.properties.map
 import net.aquadc.properties.mapWith
 import net.aquadc.properties.persistence.PropertyIo
 import net.aquadc.properties.persistence.memento.PersistableProperties
@@ -21,7 +15,6 @@ import xyz.mperminov.metalupcoming.ViewListState.Data
 import xyz.mperminov.metalupcoming.ViewListState.Empty
 import xyz.mperminov.metalupcoming.ViewListState.Error
 import java.io.Closeable
-import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -40,26 +33,19 @@ class AlbumsViewModel(
 
     val searchRequest = propertyOf("")
 
-    val albums = ViewState(
-        AlbumInfoState(propertyOf(emptyList()), propertyOf(Empty)), searchRequest
-    )
+    private val _state = propertyOf<ViewListState>(Empty)
+
+    val state = _state.mapWith(searchRequest) { state, query ->
+        if (state is Data) {
+            Data(state.list.filter { it.matches(query) })
+        } else {
+            state
+        }
+    }
+
+    val diffData get() = state
 
     private val futures = mutableListOf<Future<*>>()
-
-    val diffData = albums.items.calculateDiffOn(worker) { old, new ->
-        DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = old.size
-            override fun getNewListSize(): Int = new.size
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-                old[oldItemPosition] == new[newItemPosition]
-
-            override fun areContentsTheSame(
-                oldItemPosition: Int,
-                newItemPosition: Int
-            ): Boolean =
-                old[oldItemPosition] == new[newItemPosition]
-        })
-    }
 
     override fun saveOrRestore(io: PropertyIo) {
         io x searchRequest
@@ -75,7 +61,7 @@ class AlbumsViewModel(
     }
 
     fun loadAlbums() {
-        albums.albumInfoState._listState.value = ViewListState.Loading
+        _state.value = ViewListState.Loading
         io.submit {
             val result = ConcurrentSkipListSet<AlbumInfo> { first, second ->
                 compareValuesBy(
@@ -85,7 +71,7 @@ class AlbumsViewModel(
             }
             try {
                 val (count, firstList) = FetchAlbumsCount(okHttpClient.value).call()
-                val firstListMapped = Callable { mapToAlbumList(firstList) }.call()
+                val firstListMapped = mapToAlbumList(firstList)
                 result.addAll(firstListMapped)
                 handler.post { updateResult(result.toList()) }
                 updateFirstResult(result, count)
@@ -115,12 +101,11 @@ class AlbumsViewModel(
 
     private fun setError(e: Exception) {
         Log.e("AlbumsViewModel", e.message ?: "")
-        albums.albumInfoState._listState.value = Error
+        _state.value = Error(e)
     }
 
     private fun updateResult(list: List<AlbumInfo>) {
-        albums.albumInfoState.items.value = list
-        albums.albumInfoState._listState.value = Data
+        _state.value = Data(list)
     }
 
     private companion object {
@@ -130,35 +115,9 @@ class AlbumsViewModel(
     }
 }
 
-enum class ViewListState {
-    Empty,
-    Loading,
-    Data,
-    Error,
+sealed class ViewListState(val list: List<AlbumInfo>) {
+    object Empty : ViewListState(emptyList())
+    object Loading : ViewListState(emptyList())
+    class Data(list: List<AlbumInfo>) : ViewListState(list)
+    class Error(val e: Throwable) : ViewListState(emptyList())
 }
-
-class ViewState(val albumInfoState: AlbumInfoState, private val searchRequest: Property<String>) {
-
-    val items: Property<List<AlbumInfo>> = albumInfoState.items.flatMap { list ->
-        searchRequest.map { s ->
-            val filteredList = list.filter { it.matches(s) }
-            filteredList
-        }
-    }
-    val viewListState: Property<ViewListState> =
-        items.mapWith(albumInfoState._listState) { filteredList, innerState ->
-            if (filteredList.isEmpty()) {
-                when (innerState) {
-                    Data -> Empty
-                    else -> innerState
-                }
-            } else {
-                innerState
-            }
-        }
-}
-
-class AlbumInfoState(
-    val items: MutableProperty<List<AlbumInfo>>,
-    val _listState: MutableProperty<ViewListState>
-)
